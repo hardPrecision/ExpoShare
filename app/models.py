@@ -1,15 +1,31 @@
-from app import db
+from app import db, login
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
-class User(db.Model):
+
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     templates = db.relationship('Template', backref='author', lazy=True)
 
-    def __repr__(self):
-        return f'<User {self.username}>'
+    def get_id(self):
+        return str(self.id)
+
+    def set_password(self, password):
+        if len(password) < 8:
+            raise ValueError('Password must be at least 8 characters')
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+@login.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 class Template(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -21,3 +37,8 @@ class Template(db.Model):
 
     def __repr__(self):
         return f'<Template {self.filename}>'
+
+# flask db init
+# flask db migrate -m "Local migration"
+# flask db upgrade
+# В терминал для создания локальной бдшки

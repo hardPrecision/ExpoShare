@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Загрузить макет</h2>
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.file.label }}<br>
+        {{ form.file() }}
+    </div>
+    <div>
+        {{ form.description.label }}<br>
+        {{ form.description(cols=40, rows=4) }}
+    </div>
+    <div>
+        {{ form.is_public() }} {{ form.is_public.label }}
+    </div>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
+{% endblock %}

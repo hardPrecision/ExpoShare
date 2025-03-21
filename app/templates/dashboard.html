@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Мои макеты</h2>
+<a href="/upload">Загрузить новый</a>
+<ul>
+    {% for template in templates %}
+        <li>
+            <strong>{{ template.filename }}</strong><br>
+            {{ template.description|default("Без описания") }}<br>
+            <small>Загружен: {{ template.upload_date }}</small><br>
+            <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank">
+                Скачать/открыть
+            </a>
+            {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
+                <img src="{{ url_for('static', filename='uploads/' + template.filename) }}"
+                     style="max-width: 150px; margin: 10px;">
+            {% endif %}
+        </li>
+    {% else %}
+        <li>Нет загруженных макетов</li>
+    {% endfor %}
+</ul>
+{% endblock %}
