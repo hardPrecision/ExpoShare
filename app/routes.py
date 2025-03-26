@@ -60,7 +60,6 @@ def upload():
         template = Template(
             filename=filename,
             description=form.description.data,
-            is_public=form.is_public.data,
             user_id=current_user.id
         )
         db.session.add(template)
