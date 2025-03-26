@@ -13,6 +13,7 @@
                 Скачать/открыть
             </a>
             <a href="{{ url_for('main.publish_template', template_id=template.id) }}">Опубликовать</a>
+            <a href="{{ url_for('main.delete_template', template_id=template.id) }}">Удалить</a>
             {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
                 <img src="{{ url_for('static', filename='uploads/' + template.filename) }}" alt="maket image"
                      style="max-width: 150px; margin: 10px;">

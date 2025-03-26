@@ -27,6 +27,14 @@ def login():
     return render_template('login.html', form=form)
 
 
+@bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Вы успешно вышли из системы.')
+    return redirect(url_for('main.index'))
+
+
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
