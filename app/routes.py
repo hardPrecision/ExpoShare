@@ -58,6 +58,7 @@ def upload():
         f.save(file_path)
 
         template = Template(
+            name=form.name.data,
             filename=filename,
             description=form.description.data,
             user_id=current_user.id
@@ -66,3 +67,29 @@ def upload():
         db.session.commit()
         return redirect(url_for('main.dashboard'))
     return render_template('upload.html', form=form)
+
+
+@bp.route('/delete/<int:template_id>', methods=['GET'])
+@login_required
+def delete_template(template_id):
+    template = Template.query.get_or_404(template_id)
+    if template.user_id != current_user.id:
+        flash('You are not allowed to delete this template.')
+        return redirect(url_for('main.dashboard'))
+    db.session.delete(template)
+    db.session.commit()
+    flash('Template deleted successfully.')
+    return redirect(url_for('main.dashboard'))
+
+
+@bp.route('/publish/<int:template_id>', methods=['GET'])
+@login_required
+def publish_template(template_id):
+    template = Template.query.get_or_404(template_id)
+    if template.user_id != current_user.id:
+        flash('You are not allowed to publish this template.')
+        return redirect(url_for('main.dashboard'))
+    template.is_public = True
+    db.session.commit()
+    flash('Template published successfully.')
+    return redirect(url_for('main.dashboard'))

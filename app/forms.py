@@ -18,5 +18,6 @@ class RegistrationForm(FlaskForm):
 
 class UploadForm(FlaskForm):
     file = FileField('File', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
     description = TextAreaField('Description')
     submit = SubmitField('Upload')

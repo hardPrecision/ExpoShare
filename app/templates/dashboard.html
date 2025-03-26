@@ -6,14 +6,15 @@
 <ul>
     {% for template in templates %}
         <li>
-            <strong>{{ template.filename }}</strong><br>
+            <strong>{{ template.name }}</strong><br>
             {{ template.description|default("Без описания") }}<br>
             <small>Загружен: {{ template.upload_date }}</small><br>
             <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank">
                 Скачать/открыть
             </a>
+            <a href="{{ url_for('main.publish_template', template_id=template.id) }}">Опубликовать</a>
             {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
-                <img src="{{ url_for('static', filename='uploads/' + template.filename) }}"
+                <img src="{{ url_for('static', filename='uploads/' + template.filename) }}" alt="maket image"
                      style="max-width: 150px; margin: 10px;">
             {% endif %}
         </li>

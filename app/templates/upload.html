@@ -9,6 +9,10 @@
         {{ form.file() }}
     </div>
     <div>
+        {{ form.name.label }}<br>
+        {{ form.name() }}
+    </div>
+    <div>
         {{ form.description.label }}<br>
         {{ form.description(cols=40, rows=4) }}
     </div>

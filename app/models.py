@@ -29,6 +29,7 @@ def load_user(user_id):
 
 class Template(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
     filename = db.Column(db.String(256), nullable=False)
     description = db.Column(db.Text)
     is_public = db.Column(db.Boolean, default=False)
