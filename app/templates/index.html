@@ -1,22 +1,9 @@
+<!-- index.html -->
 {% extends "base.html" %}
-
 {% block content %}
-<h1>Публичные макеты</h1>
-<ul>
-    {% for template in templates %}
-        <li>
-            <strong>{{ template.filename }}</strong><br>
-            {{ template.description|default("Без описания") }}<br>
-            <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank">
-                Открыть файл
-            </a>
-            {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
-                <img src="{{ url_for('static', filename='uploads/' + template.filename) }}"
-                     style="max-width: 200px; margin: 10px;">
-            {% endif %}
-        </li>
-    {% else %}
-        <li>Нет доступных макетов</li>
-    {% endfor %}
-</ul>
+  <h1>Добро пожаловать в ExpoShare</h1>
+  <p>Зарегистрируйтесь или войдите, чтобы создавать выставки!</p>
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.create_exhibition') }}" class="btn btn-success">Создать выставку</a>
+  {% endif %}
 {% endblock %}

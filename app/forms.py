@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, BooleanField
-from wtforms.validators import DataRequired, EqualTo
+from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, BooleanField, SelectMultipleField
+from wtforms.validators import DataRequired, EqualTo, InputRequired, Email, ValidationError
 
 
 class LoginForm(FlaskForm):
@@ -28,3 +28,12 @@ class EditTemplateForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     description = TextAreaField('Description')
     submit = SubmitField('Save')
+
+class CreateExhibitionForm(FlaskForm):
+    name = StringField('Название выставки', validators=[DataRequired()])
+    templates = SelectMultipleField(
+        'Выбранные макеты',
+        coerce=int,
+        validators=[DataRequired("Выберите хотя бы один макет")]
+    )
+    submit = SubmitField('Создать выставку')

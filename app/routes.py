@@ -1,18 +1,20 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import User, Template
+from app.models import User, Template, Exhibition, ExhibitionItem
 from app.forms import *
 from werkzeug.utils import secure_filename
 import os
+import shutil
+import secrets
+import qrcode
 
 bp = Blueprint('main', __name__)
 
 
 @bp.route('/')
 def index():
-    public_templates = Template.query.filter_by(is_public=True).all()
-    return render_template('index.html', templates=public_templates)
+    return render_template('index.html')
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -140,3 +142,135 @@ def edit_template(template_id):
 def editor():
     return render_template('editor.html', message="Здесь будет реализован редактор")
 
+
+def generate_qr(exhibition):
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(exhibition.public_url)  # Используем внешний URL
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    qr_filename = f"{exhibition.id}_qr.png"
+    qr_path = os.path.join(current_app.config['QR_CODE_DIR'], qr_filename)
+    os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+    img.save(qr_path)
+
+    return qr_filename
+
+@bp.route('/create_exhibition', methods=['GET', 'POST'])
+@login_required
+def create_exhibition():
+    form = CreateExhibitionForm()
+    user_templates = Template.query.filter_by(user_id=current_user.id).all()
+    form.templates.choices = [(t.id, t.name) for t in user_templates]
+
+    if form.validate_on_submit():
+        selected_templates = Template.query.filter(Template.id.in_(form.templates.data)).all()
+
+        url_key = secrets.token_hex(16)
+        while Exhibition.query.filter_by(url_key=url_key).first():
+            url_key = secrets.token_hex(16)
+
+        exhibition = Exhibition(
+            name=form.name.data,
+            user_id=current_user.id,
+            url_key=url_key
+        )
+        db.session.add(exhibition)
+        db.session.commit()
+
+        exhibition.qr_filename = generate_qr(exhibition)
+        db.session.commit()
+
+        exhibition_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exhibitions', str(exhibition.id))
+        os.makedirs(exhibition_dir, exist_ok=True)
+
+        for template in selected_templates:
+            src_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
+            dst_filename = template.filename
+            dst_path = os.path.join(exhibition_dir, dst_filename)
+
+            shutil.copy2(src_path, dst_path)
+
+            item = ExhibitionItem(
+                exhibition_id=exhibition.id,
+                original_template_id=template.id,
+                name=template.name,
+                filename=dst_filename,
+                description=template.description
+            )
+            db.session.add(item)
+
+        db.session.commit()
+        return redirect(url_for('main.manage_exhibitions', url_key=url_key))
+
+    return render_template('create_exhibition.html', form=form)
+
+@bp.route('/exhibition/<url_key>')
+def view_exhibition(url_key):
+    exhibition = Exhibition.query.filter_by(url_key=url_key).first_or_404()
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(request.url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    qr_filename = f"{exhibition.id}_qr.png"
+    qr_path = os.path.join(current_app.config['QR_CODE_DIR'], qr_filename)
+    os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+    img.save(qr_path)
+
+    items = [
+        {
+            'id': item.id,
+            'name': item.name,
+            'description': item.description,
+            'filename': item.filename
+        }
+        for item in exhibition.items
+    ]
+
+    return render_template(
+        'exhibition.html',
+        exhibition=exhibition,
+        items=items,
+        qr_filename=qr_filename
+    )
+
+
+@bp.route('/manage_exhibitions')
+@login_required
+def manage_exhibitions():
+    exhibitions = Exhibition.query.filter_by(user_id=current_user.id).all()
+    return render_template('manage_exhibitions.html', exhibitions=exhibitions)
+
+
+@bp.route('/delete_exhibition/<int:exhibition_id>', methods=['POST'])
+@login_required
+def delete_exhibition(exhibition_id):
+    exhibition = Exhibition.query.get_or_404(exhibition_id)
+    if exhibition.user_id != current_user.id:
+        return "Forbidden", 403
+
+    qr_filename = f"{exhibition.id}_qr.png"
+    qr_path = os.path.join(current_app.config['QR_CODE_DIR'], qr_filename)
+    if os.path.exists(qr_path):
+        os.remove(qr_path)
+
+    exhibition_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exhibitions', str(exhibition.id))
+    if os.path.exists(exhibition_dir):
+        shutil.rmtree(exhibition_dir)
+
+    db.session.delete(exhibition)
+    db.session.commit()
+    flash('Выставка удалена')
+    return redirect(url_for('main.manage_exhibitions'))

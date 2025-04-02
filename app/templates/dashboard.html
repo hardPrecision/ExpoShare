@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h2>Мои выставки</h2>
+<a href="{{ url_for('main.manage_exhibitions') }}" class="btn btn-info">Управление выставками</a>
 <h2>Мои макеты</h2>
 <a href="/upload">Загрузить новый</a>
 <a href="{{ url_for('main.editor') }}" class="btn btn-success">Редактор</a>
@@ -13,7 +15,6 @@
             <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank">
                 Скачать/открыть
             </a>
-            <a href="{{ url_for('main.publish_template', template_id=template.id) }}">Опубликовать</a>
             <a href="{{ url_for('main.delete_template', template_id=template.id) }}">Удалить</a>
             <a href="{{ url_for('main.edit_template', template_id=template.id) }}">Изменить</a>
             {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
