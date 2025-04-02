@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, Template
-from app.forms import LoginForm, RegistrationForm, UploadForm
+from app.forms import *
 from werkzeug.utils import secure_filename
 import os
 
@@ -101,3 +101,27 @@ def publish_template(template_id):
     db.session.commit()
     flash('Template published successfully.')
     return redirect(url_for('main.dashboard'))
+
+
+@bp.route('/edit_template/<int:template_id>', methods=['GET', 'POST'])
+@login_required
+def edit_template(template_id):
+    template = Template.query.get_or_404(template_id)
+
+    if template.user_id != current_user.id:
+        flash("У вас нет прав на редактирование этого макета", "danger")
+        return redirect(url_for('main.dashboard'))
+
+    form = EditTemplateForm()
+
+    if form.validate_on_submit():
+        template.name = form.name.data
+        template.description = form.description.data
+        db.session.commit()
+        flash("Макет успешно обновлен", "success")
+        return redirect(url_for('main.dashboard'))
+
+    form.name.data = template.name
+    form.description.data = template.description
+
+    return render_template('edit.html', form=form, template=template)
