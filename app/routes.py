@@ -125,3 +125,10 @@ def edit_template(template_id):
     form.description.data = template.description
 
     return render_template('edit.html', form=form, template=template)
+
+
+@bp.route('/editor')
+@login_required
+def editor():
+    return render_template('editor.html', message="Здесь будет реализован редактор")
+

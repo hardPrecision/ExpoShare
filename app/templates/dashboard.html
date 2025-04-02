@@ -3,6 +3,7 @@
 {% block content %}
 <h2>Мои макеты</h2>
 <a href="/upload">Загрузить новый</a>
+<a href="{{ url_for('main.editor') }}" class="btn btn-success">Редактор</a>
 <ul>
     {% for template in templates %}
         <li>
