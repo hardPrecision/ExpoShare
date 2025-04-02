@@ -86,6 +86,11 @@ def delete_template(template_id):
     if template.user_id != current_user.id:
         flash('You are not allowed to delete this template.')
         return redirect(url_for('main.dashboard'))
+
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
     db.session.delete(template)
     db.session.commit()
     flash('Template deleted successfully.')
