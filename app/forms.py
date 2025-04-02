@@ -24,6 +24,7 @@ class UploadForm(FlaskForm):
 
 
 class EditTemplateForm(FlaskForm):
-    name = StringField('Имя', validators=[DataRequired()])
-    description = TextAreaField('Описание')
-    submit = SubmitField('Сохранить изменения')
+    file = FileField('File', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    description = TextAreaField('Description')
+    submit = SubmitField('Save')

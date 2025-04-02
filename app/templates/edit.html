@@ -6,6 +6,10 @@
 <form method="POST" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <div>
+    {{ form.file.label }}<br>
+    {{ form.file() }}
+    </div>
+    <div>
         {{ form.name.label }}<br>
         {{ form.name(class="form-control") }}
     </div>

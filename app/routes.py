@@ -107,9 +107,8 @@ def publish_template(template_id):
 @login_required
 def edit_template(template_id):
     template = Template.query.get_or_404(template_id)
-
     if template.user_id != current_user.id:
-        flash("У вас нет прав на редактирование этого макета", "danger")
+        flash("У вас нет прав...", "danger")
         return redirect(url_for('main.dashboard'))
 
     form = EditTemplateForm()
@@ -117,10 +116,19 @@ def edit_template(template_id):
     if form.validate_on_submit():
         template.name = form.name.data
         template.description = form.description.data
-        db.session.commit()
-        flash("Макет успешно обновлен", "success")
-        return redirect(url_for('main.dashboard'))
 
+        if form.file.data:
+            old_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
+            if os.path.exists(old_file_path):
+                os.remove(old_file_path)
+
+            filename = secure_filename(form.file.data.filename)
+            form.file.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            template.filename = filename
+
+        db.session.commit()
+        flash("Макет обновлен!", "success")
+        return redirect(url_for('main.dashboard'))
     form.name.data = template.name
     form.description.data = template.description
 
