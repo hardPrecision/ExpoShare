@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Редактировать макет: {{ template.name }}</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div>
+    {{ form.file.label }}<br>
+    {{ form.file() }}
+    </div>
+    <div>
+        {{ form.name.label }}<br>
+        {{ form.name(class="form-control") }}
+    </div>
+    <div>
+        {{ form.description.label }}<br>
+        {{ form.description(class="form-control", rows="3") }}
+    </div>
+    <br>
+    {{ form.submit(class="btn btn-primary") }}
+</form>
+
+{% endblock %}
