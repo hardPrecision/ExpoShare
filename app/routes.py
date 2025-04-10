@@ -134,13 +134,25 @@ def edit_template(template_id):
         template.description = form.description.data
 
         if form.file.data:
-            old_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
+            form.file.data.seek(0, os.SEEK_END)
+            new_file_size = form.file.data.tell()
+            form.file.data.seek(0)
+            old_filename = template.filename
+            old_file_size = template.file_size
+            new_total_size = current_user.total_size - old_file_size + new_file_size
+            if new_total_size > current_app.config['USER_FILE_LIMIT']:
+                flash("Превышен лимит хранилища", "danger")
+                return render_template('edit.html', form=form, template=template)
+            old_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], old_filename)
             if os.path.exists(old_file_path):
                 os.remove(old_file_path)
 
             filename = secure_filename(form.file.data.filename)
             form.file.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
             template.filename = filename
+            template.file_size = new_file_size
+
+            current_user.total_size = new_total_size
 
         db.session.commit()
         flash("Макет обновлен!", "success")
