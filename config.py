@@ -7,3 +7,4 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
     QR_CODE_DIR = os.path.join(UPLOAD_FOLDER, 'qrcodes')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'pdf', 'fig', 'bmp'}
+    USER_FILE_LIMIT = 1024 * 1024

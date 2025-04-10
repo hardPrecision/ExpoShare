@@ -64,16 +64,24 @@ def upload():
     if form.validate_on_submit():
         f = form.file.data
         filename = secure_filename(f.filename)
+        f.seek(0, os.SEEK_END)
+        file_size = f.tell()
+        f.seek(0)
+        if current_user.total_size + file_size > current_app.config['USER_FILE_LIMIT']:
+            flash(f"Превышен лимит хранилища", "danger")
+            return render_template('upload.html', form=form)
         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         f.save(file_path)
 
         template = Template(
             name=form.name.data,
             filename=filename,
+            file_size=file_size,
             description=form.description.data,
             user_id=current_user.id
         )
         db.session.add(template)
+        current_user.total_size += file_size
         db.session.commit()
         return redirect(url_for('main.dashboard'))
     return render_template('upload.html', form=form)
@@ -87,6 +95,7 @@ def delete_template(template_id):
         flash('You are not allowed to delete this template.')
         return redirect(url_for('main.dashboard'))
 
+    current_user.total_size -= template.file_size
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
     if os.path.exists(file_path):
         os.remove(file_path)
