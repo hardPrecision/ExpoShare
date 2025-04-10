@@ -8,22 +8,30 @@
 <a href="{{ url_for('main.editor') }}" class="btn btn-success">Редактор</a>
 <ul>
     {% for template in templates %}
-        <li>
-            <strong>{{ template.name }}</strong><br>
-            {{ template.description|default("Без описания") }}<br>
-            <small>Загружен: {{ template.upload_date }}</small><br>
-            <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank">
-                Скачать/открыть
-            </a>
-            <a href="{{ url_for('main.delete_template', template_id=template.id) }}">Удалить</a>
-            <a href="{{ url_for('main.edit_template', template_id=template.id) }}">Изменить</a>
-            {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
-                <img src="{{ url_for('static', filename='uploads/' + template.filename) }}" alt="maket image"
-                     style="max-width: 150px; margin: 10px;">
-            {% endif %}
-        </li>
+    <li>
+        <strong>{{ template.name }}</strong><br>
+
+        <form action="{{ url_for('main.delete_template', template_id=template.id) }}" method="POST">
+            <button type="submit"
+                    onclick="return confirm('Вы уверены, что хотите удалить этот макет?');">
+                Удалить
+            </button>
+        </form>
+
+        {{ template.description|default("Без описания") }}<br>
+        <small>Загружен: {{ template.upload_date }}</small><br>
+        <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank">
+            Скачать/открыть
+        </a>
+        <a href="{{ url_for('main.delete_template', template_id=template.id) }}">Удалить</a>
+        <a href="{{ url_for('main.edit_template', template_id=template.id) }}">Изменить</a>
+        {% if template.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
+        <img src="{{ url_for('static', filename='uploads/' + template.filename) }}" alt="maket image"
+             style="max-width: 150px; margin: 10px;">
+        {% endif %}
+    </li>
     {% else %}
-        <li>Нет загруженных макетов</li>
+    <li>Нет загруженных макетов</li>
     {% endfor %}
 </ul>
 {% endblock %}

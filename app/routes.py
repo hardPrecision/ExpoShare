@@ -87,12 +87,12 @@ def upload():
     return render_template('upload.html', form=form)
 
 
-@bp.route('/delete/<int:template_id>', methods=['GET'])
+@bp.route('/delete/<int:template_id>', methods=['POST'])
 @login_required
 def delete_template(template_id):
     template = Template.query.get_or_404(template_id)
     if template.user_id != current_user.id:
-        flash('You are not allowed to delete this template.')
+        flash('У вас нет прав на удаление этого макета')
         return redirect(url_for('main.dashboard'))
 
     current_user.total_size -= template.file_size
