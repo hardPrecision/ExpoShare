@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen" style="min-height: 100vh;">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 0 1rem; padding-top: 5rem; padding-bottom: 4rem;">
+        <div style="text-align: center;">
+            <h1 style="font-size: 2.5rem; font-weight: bold; color: #333; margin-bottom: 2rem;">Создавайте впечатляющие онлайн-выставки</h1>
+            <p style="font-size: 1.25rem; color: #666; margin-bottom: 3rem; max-width: 48rem; margin-left: auto; margin-right: auto;">ExpoShare - платформа для создания и публикации виртуальных выставок. Делитесь историей, искусством и культурой с аудиторией по всему миру.</p>
+            <div style="display: flex; justify-content: center; gap: 1.5rem;">
+                <a style="padding: 0.75rem 2rem; background-color: var(--primary-color); color: white; border-radius: 0.5rem; text-decoration: none;" href="/register">Начать бесплатно</a>
+                <a style="padding: 0.75rem 2rem; background-color: white; color: var(--primary-color); border: 2px solid var(--primary-color); border-radius: 0.5rem; text-decoration: none;" href="/login">Войти</a>
+            </div>
+        </div>
+        <div style="margin-top: 6rem; display: grid; grid-template-columns: 1fr; gap: 3rem;">
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-color);">
+                        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                        <path d="M3 9h18"></path>
+                        <path d="M9 21V9"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Простой редактор</h3>
+                <p style="color: #4b5563;">Интуитивный интерфейс для создания профессиональных выставок</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3rem;">
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-color);">
+                        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                        <path d="M3 9h18"></path>
+                        <path d="M9 21V9"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Простой редактор</h3>
+                <p style="color: #4b5563;">Интуитивный интерфейс для создания профессиональных выставок</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #4b5563;">
+                        <rect width="7" height="9" x="3" y="3" rx="1"></rect>
+                        <rect width="7" height="5" x="14" y="3" rx="1"></rect>
+                        <rect width="7" height="9" x="14" y="12" rx="1"></rect>
+                        <rect width="7" height="5" x="3" y="16" rx="1"></rect>
+                    </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Богатая галерея</h3>
+                <p style="color: #4b5563;">Добавляйте изображения, описания и создавайте тематические коллекции</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-color);">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Совместная работа</h3>
+                <p style="color: #4b5563;">Работайте над выставками вместе с командой модераторов</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

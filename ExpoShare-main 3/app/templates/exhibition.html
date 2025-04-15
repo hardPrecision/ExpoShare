@@ -1,0 +1,97 @@
+<!-- exhibition.html -->
+{% extends "base.html" %}
+{% block content %}
+  <div class="exhibition-container">
+    <button onclick="prevItem()" class="nav-btn"><</button>
+    <div class="current-item" id="current-item"></div>
+    <button onclick="nextItem()" class="nav-btn">></button>
+  </div>
+
+  <div class="exhibition-info">
+    <p>Ссылка на выставку:</p>
+    <input type="text"
+           value="{{ request.url }}"
+           class="form-control"
+           readonly
+           onclick="this.select()">
+
+    <p>QR-код:</p>
+    <img src="{{ url_for('static', filename='uploads/qrcodes/' + qr_filename) }}"
+         alt="QR-код выставки"
+         style="max-width: 200px;">
+  </div>
+
+  <script>
+    let currentItemIndex = 0;
+    const items = {{ items|tojson }};  <!-- Теперь items передается в шаблон -->
+    const exhibitionId = {{ exhibition.id }};
+
+    function updateCurrentItem() {
+      const currentItem = items[currentItemIndex];
+      const container = document.getElementById('current-item');
+      container.innerHTML = `
+        <div class="item-content">
+          ${isImage(currentItem.filename) ?
+            `<img src="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}"
+                 style="max-width: 100%; max-height: 100vh;">` :
+            `<a href="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}">
+              Скачать файл
+            </a>`
+          }
+        </div>
+      `;
+    }
+
+    function prevItem() {
+      currentItemIndex = Math.max(0, currentItemIndex - 1);
+      updateCurrentItem();
+    }
+
+    function nextItem() {
+      currentItemIndex = Math.min(items.length - 1, currentItemIndex + 1);
+      updateCurrentItem();
+    }
+
+    function isImage(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      return ['png', 'jpg', 'jpeg'].includes(ext);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCurrentItem();
+    });
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .exhibition-container {
+      display: flex;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .current-item {
+      flex: 1;
+      text-align: center;
+    }
+
+    .nav-btn {
+      font-size: 2rem;
+      padding: 10px 20px;
+      background: none;
+      border: 2px solid #333;
+      cursor: pointer;
+    }
+
+    .item-content img {
+      max-width: 100%;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+  </style>
+{% endblock %}
