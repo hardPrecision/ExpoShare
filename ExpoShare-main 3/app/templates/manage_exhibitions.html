@@ -1,0 +1,34 @@
+<!-- manage_exhibitions.html -->
+{% extends "base.html" %}
+{% block content %}
+  <h2>Мои выставки</h2>
+  <a href="{{ url_for('main.create_exhibition') }}" class="btn btn-success">Создать выставку</a>
+
+  <ul>
+    {% for exhibition in exhibitions %}
+      <li>
+        <h3>{{ exhibition.name }}</h3>
+        <div class="exhibition-actions">
+          <a href="{{ url_for('main.view_exhibition', url_key=exhibition.url_key) }}">Просмотреть</a>
+          <form action="{{ url_for('main.delete_exhibition', exhibition_id=exhibition.id) }}" method="POST">
+            <button type="submit" class="btn btn-danger">Удалить</button>
+          </form>
+        </div>
+
+        <div class="exhibition-links">
+          <p>Ссылка:</p>
+          <input type="text"
+                 value="{{ exhibition.public_url }}"
+                 class="form-control"
+                 readonly
+                 onclick="this.select()">
+
+          <p>QR-код:</p>
+          <img src="{{ url_for('static', filename='uploads/qrcodes/' + exhibition.qr_filename) }}"
+               alt="QR-код"
+               style="max-width: 150px;">
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
