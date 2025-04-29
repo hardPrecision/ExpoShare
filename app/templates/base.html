@@ -2,30 +2,212 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <title>ExpoShare</title>
+    <style>
+      :root {
+        --primary-color: #ef4444;
+      }
+      body { font-family: 'Poppins', sans-serif; }
+      
+      .min-h-\[calc\(100vh-4rem\)\] { min-height: calc(100vh - 4rem); }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .bg-gray-50 { background-color: #f9fafb; }
+      .max-w-md { max-width: 28rem; }
+      .w-full { width: 100%; }
+      .space-y-8 > * + * { margin-top: 2rem; }
+      .space-y-6 > * + * { margin-top: 1.5rem; }
+      .space-y-4 > * + * { margin-top: 1rem; }
+      .p-8 { padding: 2rem; }
+      .bg-white { background-color: white; }
+      .rounded-xl { border-radius: 0.75rem; }
+      .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+      .text-center { text-align: center; }
+      .mx-auto { margin-left: auto; margin-right: auto; }
+      .h-12 { height: 3rem; }
+      .w-12 { width: 3rem; }
+      .text-primary { color: var(--primary-color); }
+      .mt-6 { margin-top: 1.5rem; }
+      .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+      .font-bold { font-weight: 700; }
+      .text-gray-900 { color: #111827; }
+      .mt-8 { margin-top: 2rem; }
+      .block { display: block; }
+      .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+      .font-medium { font-weight: 500; }
+      .text-gray-700 { color: #374151; }
+      .mt-1 { margin-top: 0.25rem; }
+      .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+      .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .border { border-width: 1px; }
+      .border-gray-300 { border-color: #d1d5db; }
+      .rounded-md { border-radius: 0.375rem; }
+      .shadow-sm { box-shadow: 0 1px 2px 0 rgba(248, 247, 247, 0.05); }
+      .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+      .focus\:ring-primary:focus { box-shadow: 0 0 0 3px rgba(254, 16, 16, 0.5); }
+      .focus\:border-primary:focus { border-color: var(--primary-color); }
+      .justify-center { justify-content: center; }
+      .border-transparent { border-color: transparent; }
+      .bg-primary { background-color: var(--primary-color); }
+      .hover\:bg-primary-hover:hover { background-color: #e00e0e; }
+      .focus\:ring-2:focus { box-shadow: 0 0 0 2px var(--primary-color); }
+      .focus\:ring-offset-2:focus { box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary-color); }
+      .mt-4 { margin-top: 1rem; }
+      .text-gray-600 { color: #4b5563; }
+      .hover\:text-primary-hover:hover { color: #e00e0e; }
+      
+      .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #333;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      
+      .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-1 {
+    grid-template-columns: 1fr;
+}
+
+.gap-6 {
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+      .toast-notification.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .toast-notification.success {
+        background-color: #4CAF50;
+      }
+      
+      .user-dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .dropdown-menu {
+        position: absolute;
+        top: 45px;
+        right: 0;
+        background-color: white;
+        min-width: 160px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 8px 0;
+        z-index: 1;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
+      }
+      
+      .user-dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      
+      .dropdown-item {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: #333;
+        transition: background-color 0.2s, color 0.2s;
+      }
+      
+      .dropdown-item:hover {
+        background-color: #f5f5f5;
+        color: var(--primary-color);
+        border-radius: 6px;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .dropdown-item i {
+        margin-right: 8px;
+        width: 16px;
+        text-align: center;
+      }
+    </style>
 </head>
 <body>
-    <nav>
-        <a href="/">Главная</a>
-        {% if current_user.is_authenticated %}
-            <a href="/dashboard">Личный кабинет</a>
-            <a href="/logout">Выйти</a>
-        {% else %}
-            <a href="/login">Войти</a>
-            <a href="/register">Регистрация</a>
-        {% endif %}
-    </nav>
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="alert">
-                    {% for message in messages %}
-                        {{ message }}
-                    {% endfor %}
+    <nav style="display: flex; justify-content: space-between; align-items: center; padding: 10px;">
+        <div class="nav-left">
+            <a href="/" style="text-decoration: none; font-size: 1.5em; font-weight: bold; color: var(--primary-color);">ExpoShare</a>
+        </div>
+        <div class="nav-right">
+            {% if current_user.is_authenticated %}
+                <div class="user-dropdown">
+                    <a href="#" style="margin-left: 10px; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-color); color: white; text-decoration: none; font-weight: bold;">{{ current_user.username[0].upper() }}</a>
+                    <div class="dropdown-menu">
+                        <a href="/dashboard" class="dropdown-item">
+                            <i>👤</i> Личный кабинет
+                        </a>
+                        <a href="/logout" class="dropdown-item">
+                            <i>🚪</i> Выйти
+                        </a>
+                    </div>
                 </div>
             {% endif %}
-        {% endwith %}
+        </div>
+    </nav>
+    <div class="container">
         {% block content %}{% endblock %}
     </div>
+    
+    <div id="toast-notification" class="toast-notification">
+        <span id="toast-message"></span>
+    </div>
+    
+    <script>
+        function showToast(message, type = 'default') {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            toast.className = 'toast-notification';
+            if (type === 'success') {
+                toast.classList.add('success');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = JSON.parse('{{ get_flashed_messages() | tojson | safe }}');
+            if (flashMessages && flashMessages.length > 0) {
+                flashMessages.forEach(message => {
+                    showToast(message, "success");
+                });
+            }
+        });
+    </script>
 </body>
 </html>

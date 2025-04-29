@@ -2,7 +2,7 @@ from app import db, login
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from flask import url_for, current_app
+from flask import url_for
 
 
 class User(UserMixin, db.Model):
@@ -10,7 +10,6 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     templates = db.relationship('Template', backref='author', lazy=True)
-    total_size = db.Column(db.Integer, default=0)
 
     def get_id(self):
         return str(self.id)
@@ -23,13 +22,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def remaining_space(self):
-        return current_app.config['USER_FILE_LIMIT'] - self.total_size
-
-    @staticmethod
-    def bytes_to_mb(bytes):
-        return bytes / (1024 * 1024)
-
 
 @login.user_loader
 def load_user(user_id):
@@ -40,7 +32,6 @@ class Template(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     filename = db.Column(db.String(256), nullable=False)
-    file_size = db.Column(db.Integer, nullable=False)
     description = db.Column(db.Text)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

@@ -64,38 +64,29 @@ def upload():
     if form.validate_on_submit():
         f = form.file.data
         filename = secure_filename(f.filename)
-        f.seek(0, os.SEEK_END)
-        file_size = f.tell()
-        f.seek(0)
-        if current_user.total_size + file_size > current_app.config['USER_FILE_LIMIT']:
-            flash(f"Превышен лимит хранилища", "danger")
-            return render_template('upload.html', form=form)
         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         f.save(file_path)
 
         template = Template(
             name=form.name.data,
             filename=filename,
-            file_size=file_size,
             description=form.description.data,
             user_id=current_user.id
         )
         db.session.add(template)
-        current_user.total_size += file_size
         db.session.commit()
         return redirect(url_for('main.dashboard'))
     return render_template('upload.html', form=form)
 
 
-@bp.route('/delete/<int:template_id>', methods=['POST'])
+@bp.route('/delete/<int:template_id>', methods=['GET'])
 @login_required
 def delete_template(template_id):
     template = Template.query.get_or_404(template_id)
     if template.user_id != current_user.id:
-        flash('У вас нет прав на удаление этого макета')
+        flash('You are not allowed to delete this template.')
         return redirect(url_for('main.dashboard'))
 
-    current_user.total_size -= template.file_size
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
     if os.path.exists(file_path):
         os.remove(file_path)
@@ -134,25 +125,13 @@ def edit_template(template_id):
         template.description = form.description.data
 
         if form.file.data:
-            form.file.data.seek(0, os.SEEK_END)
-            new_file_size = form.file.data.tell()
-            form.file.data.seek(0)
-            old_filename = template.filename
-            old_file_size = template.file_size
-            new_total_size = current_user.total_size - old_file_size + new_file_size
-            if new_total_size > current_app.config['USER_FILE_LIMIT']:
-                flash("Превышен лимит хранилища", "danger")
-                return render_template('edit.html', form=form, template=template)
-            old_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], old_filename)
+            old_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
             if os.path.exists(old_file_path):
                 os.remove(old_file_path)
 
             filename = secure_filename(form.file.data.filename)
             form.file.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
             template.filename = filename
-            template.file_size = new_file_size
-
-            current_user.total_size = new_total_size
 
         db.session.commit()
         flash("Макет обновлен!", "success")

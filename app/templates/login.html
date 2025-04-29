@@ -1,19 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Вход</h2>
-<form method="POST">
-    {{ form.hidden_tag() }}
-    <div>
-        {{ form.username.label }}<br>
-        {{ form.username(size=32) }}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+        <div class="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in mx-auto h-12 w-12 text-primary" style="color: var(--primary-color)">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" x2="3" y1="12" y2="12"></line>
+            </svg>
+            <h2 class="mt-6 text-3xl font-bold text-gray-900">Вход</h2>
+        </div>
+        <form class="mt-8 space-y-6" method="POST">
+            {{ form.hidden_tag() }}
+            <div class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Имя пользователя</label>
+                    {{ form.username(class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary", id="username", style="width: 100%; box-sizing: border-box;") }}
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Пароль</label>
+                    {{ form.password(class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary", id="password", style="width: 100%; box-sizing: border-box;") }}
+                </div>
+            </div>
+            {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary", style="background-color: var(--primary-color)", value="Войти") }}
+            <div class="text-center mt-4">
+                <p class="text-sm text-gray-600">Нет аккаунта? <a href="{{ url_for('main.register') }}" class="font-medium text-primary hover:text-primary-hover" style="color: var(--primary-color)">Зарегистрироваться</a></p>
+            </div>
+        </form>
     </div>
-    <div>
-        {{ form.password.label }}<br>
-        {{ form.password(size=32) }}
-    </div>
-    <div>
-        {{ form.submit() }}
-    </div>
-</form>
+</div>
 {% endblock %}
