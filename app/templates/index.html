@@ -3,11 +3,11 @@
 <div class="min-h-screen" style="min-height: 100vh;">
     <div style="max-width: 1280px; margin: 0 auto; padding: 0 1rem; padding-top: 5rem; padding-bottom: 4rem;">
         <div style="text-align: center;">
-            <h1 style="font-size: 2.5rem; font-weight: bold; color: #333; margin-bottom: 2rem;">Создавайте впечатляющие онлайн-выставки</h1>
+            <h1 style="font-size: 2.5rem; font-weight: bold; color: #333; margin-bottom: 2rem;">Создавайте онлайн-выставки</h1>
             <p style="font-size: 1.25rem; color: #666; margin-bottom: 3rem; max-width: 48rem; margin-left: auto; margin-right: auto;">ExpoShare - платформа для создания и публикации виртуальных выставок. Делитесь историей, искусством и культурой с аудиторией по всему миру.</p>
             {% if not current_user.is_authenticated %}
             <div style="display: flex; justify-content: center; gap: 1.5rem;">
-                <a style="padding: 0.75rem 2rem; background-color: var(--primary-color); color: white; border-radius: 0.5rem; text-decoration: none;" href="/register">Начать бесплатно</a>
+                <a style="padding: 0.75rem 2rem; background-color: var(--primary-color); color: white; border-radius: 0.5rem; text-decoration: none;" href="/register">Зарегистрировать организацию</a>
                 <a style="padding: 0.75rem 2rem; background-color: white; color: var(--primary-color); border: 2px solid var(--primary-color); border-radius: 0.5rem; text-decoration: none;" href="/login">Войти</a>
             </div>
             {% endif %}
@@ -23,7 +23,7 @@
                     </svg>
                 </div>
                 <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Простой редактор</h3>
-                <p style="color: #4b5563;">Интуитивный интерфейс для создания профессиональных выставок</p>
+                <p style="color: #4b5563;">Интуитивный интерфейс для работы с макетами</p>
             </div>
             <div style="text-align: center; padding: 1.5rem;">
                 <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
@@ -35,7 +35,7 @@
                     </svg>
                 </div>
                 <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Богатая галерея</h3>
-                <p style="color: #4b5563;">Добавляйте изображения, описания и создавайте тематические коллекции</p>
+                <p style="color: #4b5563;">Добавляйте изображения, описания и создавайте тематические выставки</p>
             </div>
             <div style="text-align: center; padding: 1.5rem;">
                 <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
@@ -47,7 +47,7 @@
                     </svg>
                 </div>
                 <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Совместная работа</h3>
-                <p style="color: #4b5563;">Работайте над выставками вместе с командой модераторов</p>
+                <p style="color: #4b5563;">Работайте над выставками вместе со своей командой</p>
             </div>
         </div>
     </div>
