@@ -1,13 +1,14 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import User, Template, Exhibition, ExhibitionItem
+from app.models import User, Template, Exhibition, ExhibitionItem, Layout
 from app.forms import *
 from werkzeug.utils import secure_filename
 import os
 import shutil
 import secrets
 import qrcode
+from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
@@ -54,7 +55,8 @@ def register():
 @login_required
 def dashboard():
     templates = Template.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', templates=templates)
+    layouts = Layout.query.filter_by(user_id=current_user.id).order_by(Layout.created_at.desc()).all()
+    return render_template('dashboard.html', templates=templates, layouts=layouts)
 
 
 @bp.route('/upload', methods=['GET', 'POST'])
@@ -64,12 +66,15 @@ def upload():
     if form.validate_on_submit():
         f = form.file.data
         filename = secure_filename(f.filename)
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+        files_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'files', current_user.uuid)
+        os.makedirs(files_dir, exist_ok=True)
+        file_path = os.path.join(files_dir, filename)
         f.save(file_path)
 
+        rel_path = f"files/{current_user.uuid}/{filename}"
         template = Template(
             name=form.name.data,
-            filename=filename,
+            filename=rel_path,
             description=form.description.data,
             user_id=current_user.id
         )
@@ -130,8 +135,10 @@ def edit_template(template_id):
                 os.remove(old_file_path)
 
             filename = secure_filename(form.file.data.filename)
-            form.file.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-            template.filename = filename
+            files_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'files', current_user.uuid)
+            os.makedirs(files_dir, exist_ok=True)
+            form.file.data.save(os.path.join(files_dir, filename))
+            template.filename = f"files/{current_user.uuid}/{filename}"
 
         db.session.commit()
         flash("Макет обновлен!", "success")
@@ -148,6 +155,63 @@ def editor():
     return render_template('editor.html', message="Здесь будет реализован редактор")
 
 
+@bp.route('/layout/<int:layout_id>/view')
+@login_required
+def view_layout(layout_id):
+    layout = Layout.query.get_or_404(layout_id)
+    if layout.user_id != current_user.id:
+        return redirect(url_for('main.dashboard'))
+    # Render editor template in preview-only mode
+    return render_template('editor.html', layout=layout, view_mode=True)
+
+
+@bp.route('/editor/save', methods=['POST'])
+@login_required
+def save_layout():
+    data = request.get_json() or {}
+    # Determine layout name, content, and file extension
+    name = data.get('name', f'Layout {datetime.utcnow().strftime("%Y%m%d%H%M%S")}')
+    content = data.get('content', '')
+    ext = 'html' if data.get('mode') == 'html' else 'md'
+    layout_id = data.get('id')
+    # Prevent duplicate names
+    conflict = Layout.query.filter_by(user_id=current_user.id, name=name)
+    if layout_id:
+        layout = Layout.query.get_or_404(layout_id)
+        if layout.user_id != current_user.id:
+            return {'success': False, 'error': 'Forbidden'}, 403
+        if conflict.first() and conflict.first().id != layout.id:
+            return {'success': False, 'error': 'Duplicate name'}
+        # Update record and overwrite file
+        layout.name = name
+        layout.content = content
+        safe = secure_filename(name)
+        filename = f"{layout.id}_{safe}.{ext}" if safe else f"{layout.id}.{ext}"
+        layouts_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'layouts', current_user.uuid)
+        file_path = os.path.join(layouts_dir, filename)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        layout.filename = filename
+        db.session.commit()
+        return {'success': True, 'id': layout.id, 'name': layout.name}
+    # New layout creation
+    if conflict.first():
+        return {'success': False, 'error': 'Duplicate name'}
+    layout = Layout(name=name, filename='', content=content, user_id=current_user.id)
+    db.session.add(layout)
+    db.session.commit()
+    safe = secure_filename(name)
+    filename = f"{layout.id}_{safe}.{ext}" if safe else f"{layout.id}.{ext}"
+    layouts_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'layouts', current_user.uuid)
+    os.makedirs(layouts_dir, exist_ok=True)
+    file_path = os.path.join(layouts_dir, filename)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    layout.filename = filename
+    db.session.commit()
+    return {'success': True, 'id': layout.id, 'name': layout.name}
+
+
 def generate_qr(exhibition):
     qr = qrcode.QRCode(
         version=1,
@@ -159,22 +223,27 @@ def generate_qr(exhibition):
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
 
+    qr_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'qrcodes', current_user.uuid)
+    os.makedirs(qr_dir, exist_ok=True)
     qr_filename = f"{exhibition.id}_qr.png"
-    qr_path = os.path.join(current_app.config['QR_CODE_DIR'], qr_filename)
-    os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+    qr_path = os.path.join(qr_dir, qr_filename)
     img.save(qr_path)
 
     return qr_filename
+
 
 @bp.route('/create_exhibition', methods=['GET', 'POST'])
 @login_required
 def create_exhibition():
     form = CreateExhibitionForm()
     user_templates = Template.query.filter_by(user_id=current_user.id).all()
+    user_layouts = Layout.query.filter_by(user_id=current_user.id).all()
     form.templates.choices = [(t.id, t.name) for t in user_templates]
+    form.layouts.choices = [(l.id, l.name) for l in user_layouts]
 
     if form.validate_on_submit():
         selected_templates = Template.query.filter(Template.id.in_(form.templates.data)).all()
+        selected_layouts = Layout.query.filter(Layout.id.in_(form.layouts.data)).all()
 
         url_key = secrets.token_hex(16)
         while Exhibition.query.filter_by(url_key=url_key).first():
@@ -191,12 +260,12 @@ def create_exhibition():
         exhibition.qr_filename = generate_qr(exhibition)
         db.session.commit()
 
-        exhibition_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exhibitions', str(exhibition.id))
+        exhibition_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exhibitions', current_user.uuid, str(exhibition.id))
         os.makedirs(exhibition_dir, exist_ok=True)
 
         for template in selected_templates:
             src_path = os.path.join(current_app.config['UPLOAD_FOLDER'], template.filename)
-            dst_filename = template.filename
+            dst_filename = os.path.basename(template.filename)
             dst_path = os.path.join(exhibition_dir, dst_filename)
 
             shutil.copy2(src_path, dst_path)
@@ -210,10 +279,26 @@ def create_exhibition():
             )
             db.session.add(item)
 
+        # add layout items
+        for layout in selected_layouts:
+            # copy layout file into exhibition folder
+            src = os.path.join(current_app.config['UPLOAD_FOLDER'], 'layouts', current_user.uuid, layout.filename)
+            dst = os.path.join(exhibition_dir, layout.filename)
+            shutil.copy2(src, dst)
+            item = ExhibitionItem(
+                exhibition_id=exhibition.id,
+                original_template_id=None,
+                name=layout.name,
+                filename=layout.filename,
+                description=''  # or layout.content preview
+            )
+            db.session.add(item)
+
         db.session.commit()
         return redirect(url_for('main.manage_exhibitions', url_key=url_key))
 
     return render_template('create_exhibition.html', form=form)
+
 
 @bp.route('/exhibition/<url_key>')
 def view_exhibition(url_key):
@@ -229,26 +314,35 @@ def view_exhibition(url_key):
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
 
+    user = User.query.get(exhibition.user_id)
+    qr_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'qrcodes', user.uuid)
     qr_filename = f"{exhibition.id}_qr.png"
-    qr_path = os.path.join(current_app.config['QR_CODE_DIR'], qr_filename)
+    qr_path = os.path.join(qr_dir, qr_filename)
     os.makedirs(os.path.dirname(qr_path), exist_ok=True)
     img.save(qr_path)
 
-    items = [
-        {
-            'id': item.id,
-            'name': item.name,
-            'description': item.description,
-            'filename': item.filename
-        }
-        for item in exhibition.items
-    ]
+    items = []
+    for item in exhibition.items:
+        item_data = {'id': item.id, 'name': item.name, 'description': item.description, 'filename': item.filename}
+        # add animation settings for layout items
+        anim_type = anim_timing = anim_duration = ''
+        if item.original_template_id is None:
+            layout = Layout.query.filter_by(filename=item.filename, user_id=exhibition.user_id).first()
+            if layout:
+                anim_type = layout.anim_type or ''
+                anim_timing = layout.anim_timing or ''
+                anim_duration = layout.anim_duration or ''
+        item_data['anim_type'] = anim_type
+        item_data['anim_timing'] = anim_timing
+        item_data['anim_duration'] = anim_duration
+        items.append(item_data)
 
     return render_template(
         'exhibition.html',
         exhibition=exhibition,
         items=items,
-        qr_filename=qr_filename
+        qr_filename=f"qrcodes/{user.uuid}/{qr_filename}",
+        user_uuid=user.uuid
     )
 
 
@@ -266,12 +360,13 @@ def delete_exhibition(exhibition_id):
     if exhibition.user_id != current_user.id:
         return "Forbidden", 403
 
+    qr_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'qrcodes', current_user.uuid)
     qr_filename = f"{exhibition.id}_qr.png"
-    qr_path = os.path.join(current_app.config['QR_CODE_DIR'], qr_filename)
+    qr_path = os.path.join(qr_dir, qr_filename)
     if os.path.exists(qr_path):
         os.remove(qr_path)
 
-    exhibition_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exhibitions', str(exhibition.id))
+    exhibition_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exhibitions', current_user.uuid, str(exhibition.id))
     if os.path.exists(exhibition_dir):
         shutil.rmtree(exhibition_dir)
 
@@ -279,3 +374,9 @@ def delete_exhibition(exhibition_id):
     db.session.commit()
     flash('Выставка удалена')
     return redirect(url_for('main.manage_exhibitions'))
+
+
+@bp.route('/uploads/<path:filename>')
+@login_required
+def uploaded_file(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)

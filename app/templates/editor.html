@@ -1,7 +1,106 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
+{% endblock %}
+
 {% block content %}
-<h1>Редактор (заглушка)</h1>
-<p>{{ message }}</p>
-<a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Вернуться назад</a>
+<!-- Заголовок редактора с редактированием названия -->
+<div class="layout-header">
+  <div class="layout-title-group">
+    <span id="layout-name-display">Новое название</span>
+    <button type="button" id="layout-name-edit-btn">✏️</button>
+    <input type="text" id="layout-name-input" style="display:none;" />
+  </div>
+  <button id="toggle-preview-btn">👁 Превью</button>
+</div>
+<div id="editor-layout">
+  <div id="editor-sidebar">
+    <!-- Шрифт и интервал -->
+    <div class="control">
+      <label for="font-family">Шрифт</label>
+      <select id="font-family">
+        <option value="Poppins">Poppins</option>
+        <option value="Arial">Arial</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Courier New">Courier New</option>
+      </select>
+    </div>
+    <div class="control">
+      <label for="font-size">Размер шрифта</label>
+      <select id="font-size">
+        <option value="14">14px</option>
+        <option value="16" selected>16px</option>
+        <option value="18">18px</option>
+        <option value="24">24px</option>
+        <option value="32">32px</option>
+      </select>
+    </div>
+    <div class="control">
+      <label for="line-height">Интервал</label>
+      <select id="line-height">
+        <option value="1">1</option>
+        <option value="1.5" selected>1.5</option>
+        <option value="2">2</option>
+      </select>
+    </div>
+    <div class="control">
+      <label for="anim-type">Анимация</label>
+      <select id="anim-type">
+        <option value="">Без анимации</option>
+        <option value="fade-in">Появление</option>
+        <option value="slide-in">Сдвиг</option>
+      </select>
+    </div>
+    <div class="control">
+      <label for="anim-timing">Timing-функция</label>
+      <select id="anim-timing">
+        <option value="ease">ease</option>
+        <option value="ease-in">ease-in</option>
+        <option value="ease-out">ease-out</option>
+        <option value="ease-in-out">ease-in-out</option>
+      </select>
+    </div>
+    <div class="control">
+      <label for="anim-duration">Длительность (с)</label>
+      <input type="number" id="anim-duration" value="1" step="0.1" style="width:60px" />
+    </div>
+  </div>
+  <div id="editor-container">
+    <div id="editor-toolbar">
+      <button type="button" data-action="undo">↶</button>
+      <button type="button" data-action="redo">↷</button>
+      <button type="button" data-action="bold"><strong>B</strong></button>
+      <button type="button" data-action="italic"><em>I</em></button>
+      <button type="button" data-action="heading">H</button>
+      <button type="button" data-action="link">Ссылка</button>
+      <button type="button" data-action="image">Изображение</button>
+      <button type="button" data-action="carousel">Карусель изображений</button>
+      <!-- Spoiler feature removed -->
+      <button type="button" data-action="export">Экспорт</button>
+      <button type="button" data-action="import">Импорт</button>
+      <button type="button" data-action="preview-newtab">Открыть превью в новой вкладке</button>
+      <input type="file" id="import-input" accept="application/json" style="display:none" />
+    </div>
+    <textarea id="editor-markdown" placeholder="Введите текст..."></textarea>
+    <div id="editor-preview" style="display:none;"></div>  <!-- Скрываем превью по умолчанию -->
+  </div>
+</div>
+<div class="editor-actions">
+  <button id="save-markdown">Сохранить макет</button>
+  <a href="{{ url_for('main.dashboard') }}" id="cancel-link">Отмена</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.USER_UUID = '{{ current_user.uuid }}';
+  window.VIEW_MODE = {{ view_mode|default(False)|tojson }};
+  {% if layout %}
+  window.EDIT_LAYOUT = {{ {'id': layout.id, 'name': layout.name, 'content': layout.content}|tojson }};
+  {% else %}
+  window.EDIT_LAYOUT = null;
+  {% endif %}
+</script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
 {% endblock %}

@@ -3,10 +3,12 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from flask import url_for
+import uuid
 
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     templates = db.relationship('Template', backref='author', lazy=True)
@@ -61,6 +63,21 @@ class ExhibitionItem(db.Model):
     name = db.Column(db.String(128), nullable=False)
     filename = db.Column(db.String(256), nullable=False)
     description = db.Column(db.Text)
+
+
+class Layout(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    filename = db.Column(db.String(256), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    anim_type = db.Column(db.String(32), nullable=True)      # animation type (fade-in, slide-in, etc.)
+    anim_timing = db.Column(db.String(32), nullable=True)    # CSS animation timing function
+    anim_duration = db.Column(db.String(16), nullable=True)  # duration in seconds (e.g., '1s')
+
+    def __repr__(self):
+        return f'<Layout {self.name}>'
 
 
 # flask db init
