@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold text-center">Редактор макета</h1>
+        <form class="mt-8 space-y-6" method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div>
+                <label for="exhibition_name" class="block text-sm font-medium text-gray-700">Название макета</label>
+                {{ form.name(class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary", id="exhibition_name", style="width: 100%; box-sizing: border-box;") }}
+            </div>
+            <div>
+                <label for="exhibition_description" class="block text-sm font-medium text-gray-700">Описание макета</label>
+                {{ form.description(class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary", id="exhibition_description", rows="3", style="width: 100%; box-sizing: border-box;") }}
+            </div>
+            <div>
+                <label for="exhibition_file" class="block text-sm font-medium text-gray-700">Прикрепленный файл</label>
+                {{ form.file(class="mt-1 block w-full", id="exhibition_file") }}
+                <div id="file-preview" class="mt-4 overflow-hidden"></div>
+            </div>
+            <div>
+                {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary", value="Сохранить макет") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('exhibition_file').addEventListener('change', function(event) {
+    const previewContainer = document.getElementById('file-preview');
+    previewContainer.innerHTML = ''; 
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+        const img = document.createElement('img');
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '300px';
+        img.style.display = 'block';
+        img.style.margin = '0 auto';
+        img.src = URL.createObjectURL(file);
+        previewContainer.appendChild(img);
+    } else {
+        const span = document.createElement('span');
+        span.textContent = file.name;
+        previewContainer.appendChild(span);
+    }
+});
+</script>
+{% endblock %}
