@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, BooleanField, SelectMultipleField
-from wtforms.validators import DataRequired, EqualTo, InputRequired, Email, ValidationError
+from wtforms.validators import DataRequired, EqualTo, InputRequired, Email, ValidationError, Length
 
 
 class LoginForm(FlaskForm):
@@ -11,8 +11,14 @@ class LoginForm(FlaskForm):
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    password = PasswordField('Password', validators=[
+        DataRequired(message="Введите пароль"),
+        Length(min=8, message="Пароль должен содержать минимум 8 символов")
+    ])
+    confirm = PasswordField('Confirm Password', validators=[
+        DataRequired(message="Подтвердите пароль"),
+        EqualTo('password', message='Пароли должны совпадать')
+    ])
     submit = SubmitField('Register')
 
 

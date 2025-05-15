@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
+from sqlalchemy.exc import IntegrityError
+
 from app import db
 from app.models import User, Template, Exhibition, ExhibitionItem
 from app.forms import *
@@ -40,13 +42,21 @@ def logout():
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
+
     if form.validate_on_submit():
-        user = User(username=form.username.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Registration successful!')
-        return redirect(url_for('main.login'))
+        try:
+            user = User(username=form.username.data)
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for('main.login'))
+        except IntegrityError:
+            db.session.rollback()
+            flash('Имя пользователя уже занято', 'error')
+        except Exception as e:
+            db.session.rollback()
+            flash('Произошла ошибка при регистрации', 'error')
+
     return render_template('register.html', form=form)
 
 
