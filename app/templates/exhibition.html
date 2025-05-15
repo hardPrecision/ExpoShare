@@ -1,42 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="exhibition-container">
-    <button onclick="prevItem()" class="nav-btn">←</button>
-    <div class="current-item" id="current-item"></div>
-    <button onclick="nextItem()" class="nav-btn">→</button>
-  </div>
+    <div class="exhibition-container">
+        <button onclick="prevItem()" class="nav-btn">←</button>
+        <div class="current-item" id="current-item"></div>
+        <button onclick="nextItem()" class="nav-btn">→</button>
+    </div>
 
-  <script>
-    let currentItemIndex = 0;
-    const items = {{ items|tojson }};
-    const exhibitionId = {{ exhibition.id }};
+    <script>
+        let currentItemIndex = 0;
+        const items = {{ items|tojson }};
+        const exhibitionId = {{ exhibition.id }};
 
-    function updateCurrentItem() {
-      const currentItem = items[currentItemIndex];
+        function updateCurrentItem() {
+            const currentItem = items[currentItemIndex];
 
-      // Используем name из данных или имя файла
-      const title = currentItem.name ||
-                   (currentItem.filename ?
+            // Используем name из данных или имя файла
+            const title = currentItem.name ||
+                (currentItem.filename ?
                     currentItem.filename.split('.')[0].replace(/_/g, ' ') :
                     'Без названия');
 
-      // Пытаемся найти описание в разных полях
-      const description = currentItem.description ||
-                         currentItem.desc ||
-                         currentItem.text ||
-                         currentItem.annotation ||
-                         'Описание отсутствует';
+            // Пытаемся найти описание в разных полях
+            const description = currentItem.description ||
+                currentItem.desc ||
+                currentItem.text ||
+                currentItem.annotation ||
+                'Описание отсутствует';
 
-      const container = document.getElementById('current-item');
-      container.innerHTML = `
+            const container = document.getElementById('current-item');
+            container.innerHTML = `
         <div class="item-content">
           ${isImage(currentItem.filename) ?
-            `<img src="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}"
+                `<img src="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}"
                  style="max-width: 100%; max-height: 80vh;">` :
-            `<a href="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}" class="download-link">
+                `<a href="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}" class="download-link">
               Скачать файл (${currentItem.filename})
             </a>`
-          }
+            }
 
           <div class="item-info">
             <h2 class="item-title">${title}</h2>
@@ -49,174 +49,184 @@
           </div>
         </div>
       `;
-    }
+        }
 
-    function prevItem() {
-      currentItemIndex = Math.max(0, currentItemIndex - 1);
-      updateCurrentItem();
-    }
+        function prevItem() {
+            currentItemIndex = Math.max(0, currentItemIndex - 1);
+            updateCurrentItem();
+        }
 
-    function nextItem() {
-      currentItemIndex = Math.min(items.length - 1, currentItemIndex + 1);
-      updateCurrentItem();
-    }
+        function nextItem() {
+            currentItemIndex = Math.min(items.length - 1, currentItemIndex + 1);
+            updateCurrentItem();
+        }
 
-    function isImage(filename) {
-      if (!filename) return false;
-      const ext = filename.split('.').pop().toLowerCase();
-      return ['png', 'jpg', 'jpeg'].includes(ext);
-    }
+        function isImage(filename) {
+            if (!filename) return false;
+            const ext = filename.split('.').pop().toLowerCase();
+            return ['png', 'jpg', 'jpeg'].includes(ext);
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      updateCurrentItem();
-    });
-  </script>
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCurrentItem();
+        });
+    </script>
 
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+        }
 
-    .exhibition-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 100vh;
-      padding: 20px;
-      background: #f8f9fa;
-    }
+        .exhibition-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            padding: 20px;
+            background: #f8f9fa;
+        }
 
-    .current-item {
-      flex: 1;
-      text-align: center;
-      padding: 20px;
-    }
+        .current-item {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+        }
 
-    .nav-btn {
-      font-size: 2.5rem;
-      padding: 15px 25px;
-      margin: 0 10px;
-      background-color: #EF4444; /* Цвет ExpoShare (фиолетовый) */
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      transition: all 0.3s ease;
-    }
+        .nav-btn {
+            font-size: 2.5rem;
+            padding: 15px 25px;
+            margin: 0 10px;
+            background-color: #EF4444; /* Цвет ExpoShare (фиолетовый) */
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
 
-    .nav-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    }
+        .nav-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
 
-    .item-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+        .item-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    .item-content img {
-      max-width: 100%;
-      max-height: 85vh;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
+        .item-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
 
-    .download-link {
-      display: inline-block;
-      padding: 10px 20px;
-      background: #d946ef;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: background 0.3s ease;
-    }
+        .download-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #d946ef;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
 
-    .download-link:hover {
-      background: #a855f7;
-    }
+        .download-link:hover {
+            background: #a855f7;
+        }
 
-    .item-info {
-      display: flex;
-      align-items: center;
-      margin-top: 15px;
-    }
-
-    .description-tooltip {
-      position: relative;
-      cursor: help;
-      font-size: 1.2rem;
-      color: #6b7280;
-      transition: color 0.3s ease;
-    }
-
-    .description-tooltip:hover {
-      color: #d946ef;
-    }
-
-    .tooltip-text {
-      visibility: hidden;
-      width: 300px;
-      background: #374151;
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 10px;
-      position: absolute;
-      z-index: 1000;
-      bottom: 125%; /* Показываем над значком */
-      left: 50%;
-      margin-left: -150px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-size: 0.9rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .description-tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
-
-    .item-title {
-      font-size: 2.2rem;
-      color: #4b5563;
-      margin: 0;
-      font-weight: 600;
-    }
-    .item-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 20px;
-    height: 100%;
-    overflow-y: auto; /* Добавляем прокрутку */
-    padding-bottom: 100px; /* Отступ для кнопок */
-  }
-
-      .item-title {
-        font-size: 24px;
-        color: #4b5563;
-        margin: 0;
-        font-weight: 600;
-        max-width: 80%; /* Ограничиваем ширину */
-        text-align: center;
-      }
-
-      @media (max-height: 700px) {
-        .item-title {
-          font-size: 1.8rem;
+        .item-info {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
         }
 
         .description-tooltip {
-          font-size: 1rem;
+            position: relative;
+            cursor: help;
+            font-size: 1.2rem;
+            color: #6b7280;
+            transition: color 0.3s ease;
         }
-      }
-  </style>
+
+        .description-tooltip:hover {
+            color: #d946ef;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 300px;
+            background: #374151;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%; /* Показываем над значком */
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .description-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .item-title {
+            font-size: 2.2rem;
+            color: #4b5563;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .item-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px;
+            height: 100%;
+            overflow-y: auto; /* Добавляем прокрутку */
+            padding-bottom: 150px; /* Отступ для кнопок */
+        }
+
+        .item-title {
+            font-size: 24px;
+            color: #4b5563;
+            margin: 0;
+            font-weight: 600;
+            max-width: 80%; /* Ограничиваем ширину */
+            text-align: center;
+        }
+
+        @media (max-height: 700px) {
+            .item-title {
+                font-size: 1.8rem;
+            }
+
+            .description-tooltip {
+                font-size: 1rem;
+            }
+        }
+
+        @media (orientation: landscape) and (max-width: 768px) {
+          .exhibition-container {
+            flex-direction: column;
+            overflow-y: auto;
+            height: 100vh;
+          }
+        }
+
+    </style>
 {% endblock %}

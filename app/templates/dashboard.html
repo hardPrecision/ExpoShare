@@ -95,12 +95,13 @@
         }
 
         .template-card {
-            width: 100%;
-            height: auto;
+            /* фиксированная максимальная ширина вместо 100% */
+            max-width: 300px;
+            flex: 1 1 300px;
+            margin: 0;
             display: flex;
             flex-direction: column;
             border: 1px solid #e5e7eb;
-            margin: 0;
             border-radius: 0.5rem;
             overflow: hidden;
         }
@@ -128,7 +129,6 @@
 
         .image-container {
             width: 100%;
-            height: auto;
             aspect-ratio: 1 / 1;
             position: relative;
             overflow: hidden;
@@ -203,14 +203,21 @@
             color: white;
         }
 
+        .grid-container {
+            /* выравниваем все карточки по вершине ячеек */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 0 1.5rem;
+            margin: 0 auto;
+            max-width: 1200px;
+            align-items: start;
+            justify-items: center;
+        }
+
         @media (min-width: 768px) {
             .grid-container {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 2rem;
-                padding: 0 1.5rem;
-                margin: 0 auto;
-                max-width: 1200px;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             }
         }
     </style>
@@ -224,8 +231,7 @@
         {% if current_user.is_authenticated %}
         <div class="user-dropdown">
             <a href="#"
-               style="margin-left: 10px; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-color); color: white; text-decoration: none; font-weight: bold;">{{
-                current_user.username[0].upper() }}</a>
+               style="margin-left: 10px; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-color); color: white; text-decoration: none; font-weight: bold;">{{ current_user.username[0].upper() }}</a>
             <div class="dropdown-menu">
                 <a href="/dashboard" class="dropdown-item">
                     <i>👤</i> Личный кабинет
@@ -284,23 +290,12 @@
             </div>
 
             <div class="actions">
-                <a href="{{ url_for('static', filename='uploads/' + template.filename) }}"
-                   target="_blank"
-                   class="action-btn btn-primary">
-                    Открыть
-                </a>
-                <a href="{{ url_for('main.edit_template', template_id=template.id) }}"
-                   class="action-btn btn-success">
-                    Изменить
-                </a>
-                <a href="{{ url_for('main.delete_template', template_id=template.id) }}"
-                   class="action-btn btn-danger">
-                    Удалить
-                </a>
+                <a href="{{ url_for('static', filename='uploads/' + template.filename) }}" target="_blank" class="action-btn btn-primary">Открыть</a>
+                <a href="{{ url_for('main.edit_template', template_id=template.id) }}" class="action-btn btn-success">Изменить</a>
+                <a href="{{ url_for('main.delete_template', template_id=template.id) }}" class="action-btn btn-danger">Удалить</a>
             </div>
         </div>
         {% endfor %}
-
         {% endif %}
     </div>
 </div>
