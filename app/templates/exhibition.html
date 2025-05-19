@@ -5,10 +5,10 @@
     <div id="page-indicator" class="page-indicator">1/{{ items|length }}</div>
   </div>
   <div class="exhibition-container">
-        <button onclick="prevItem()" class="nav-btn">←</button>
-        <div class="current-item" id="current-item"></div>
-        <button onclick="nextItem()" class="nav-btn">→</button>
-    </div>
+    <button onclick="prevItem()" class="nav-btn">←</button>
+    <div class="current-item" id="current-item"></div>
+    <button onclick="nextItem()" class="nav-btn">→</button>
+  </div>
 
   <script>
     const userUuid = '{{ user_uuid }}';
@@ -21,47 +21,95 @@
       const currentItem = items[currentItemIndex];
       const ext = currentItem.filename ? currentItem.filename.split('.').pop().toLowerCase() : '';
 
-      // Используем name из данных или имя файла
-      const title = currentItem.name ||
-                   (currentItem.filename ?
-                    currentItem.filename.split('.')[0].replace(/_/g, ' ') :
-                    'Без названия');
-
-      // Пытаемся найти описание в разных полях
-      const description = currentItem.description ||
-                         currentItem.desc ||
-                         currentItem.text ||
-                         currentItem.annotation ||
-                         'Описание отсутствует';
+      const title = currentItem.name || (currentItem.filename ? currentItem.filename.split('.')[0].replace(/_/g, ' ') : 'Без названия');
+      const description = currentItem.description || currentItem.desc || currentItem.text || currentItem.annotation || 'Описание отсутствует';
 
       const container = document.getElementById('current-item');
       let contentHtml = '';
       if (ext === 'md' || ext === 'html') {
-        // layout: render inline
-        contentHtml = `<div id="layout-render" class="item-content"><div class="spinner"></div></div>`;
+        contentHtml = `<div id="layout-render" class="item-content layout-block"><div class="spinner"></div></div>`;
       } else if (isImage(currentItem.filename)) {
-        contentHtml = `<img src="/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}"
-                             style="max-width: 100%; max-height: 80vh;">`;
-      } else {
-        contentHtml = `<a href="/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}" class="download-link">
-                            Скачать файл (${currentItem.filename})
-                        </a>`;
-      }
-      container.innerHTML = `
-        <div class="item-content layout-block">
-          ${contentHtml}
-        </div>
-        <div class="item-info">
-            <h2 class="item-title">${title}</h2>
-
-            <!-- Значок информации -->
-            <div class="description-tooltip">
-              ℹ️
-              <span class="tooltip-text">${description}</span>
+        contentHtml = `
+          <div class="item-display">
+            <img src="/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}" class="display-image" alt="${title}" />
+            <div class="item-info">
+              <h2 class="item-title">${title}</h2>
+              <p class="item-description">${description}</p>
             </div>
-          </div>
-        </div>
-      `;
+          </div>`;
+      } else {
+        contentHtml = `<a href="/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}" class="download-link">Скачать файл (${currentItem.filename})</a>`;
+      }
+
+      container.innerHTML = `<div class="item-content">${contentHtml}</div>`;
+
+      if (ext === 'md' || ext === 'html') {
+        const url = `/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}`;
+        const key = currentItemIndex;
+        if (slideCache[key]) {
+          document.getElementById('layout-render').innerHTML = slideCache[key];
+          document.getElementById('layout-render').querySelectorAll('.carousel').forEach(initCarousel);
+        } else {
+          fetch(url)
+            .then(res => res.text())
+            .then(text => {
+              let rendered = ext === 'md' ? simpleMarkdown(text) : text;
+              slideCache[key] = rendered;
+              document.getElementById('layout-render').innerHTML = rendered;
+              document.getElementById('layout-render').querySelectorAll('.carousel').forEach(initCarousel);
+            });
+        }
+      }
+
+      document.getElementById('page-indicator').textContent = `${currentItemIndex+1}/${items.length}`;
+
+      const block = container.querySelector('.layout-block');
+      if (block) {
+        block.classList.remove('fade-in', 'slide-in');
+        block.classList.add('fade-in');
+        block.style.setProperty('--anim-duration', '1s');
+        block.style.animationTimingFunction = 'ease';
+      }
+    }
+
+    // Very basic markdown to HTML
+    // Extend simpleMarkdown to handle carousel shortcode
+    function simpleMarkdown(md) {
+      let html = md
+        .replace(/^(#{1,6})\s*(.+)$/gm, (m, hashes, title) => `<h${hashes.length}>${title}</h${hashes.length}>`)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*\*/g, '<em>$1</em>')
+        .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;"/>')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/\n/g, '<br/>');
+      // Post-process carousel shortcode with optional size attributes
+      html = html.replace(/\[carousel(?:\s+delay="([\d.]+)")?(?:\s+max_width="([^"]+)")?(?:\s+max_height="([^"]+)")?\]([\s\S]*?)\[\/carousel\]/g,
+        (m, delay, maxW, maxH, inner) => {
+          const interval = parseFloat(delay) || 3;
+          const slides = inner.trim().split(/<br\/?\>/)
+            .filter(s => s.trim())
+            .map(item => {
+              let style = '';
+              if (maxW) style += `max-width:${maxW};`;
+              if (maxH) style += `max-height:${maxH};`;
+              return `<div class=\"slide\" style=\"${style}\">${item}</div>`;
+            }).join('');
+          return `<div class=\"carousel\" data-delay=\"${interval}\"><div class=\"slides\">${slides}</div></div>`;
+        });
+      return html;
+    }
+
+    // Add initCarousel for exhibition view
+    function initCarousel(carousel) {
+      if (carousel._initialized) return;
+      const slides = carousel.querySelector('.slides');
+      const total = slides.children.length;
+      let idx = 0;
+      function show(i) { slides.style.transform = `translateX(-${i * 100}%)`; }
+      show(idx);
+      const delay = parseFloat(carousel.dataset.delay) || 3;
+      setInterval(() => { idx = (idx + 1) % total; show(idx); }, delay * 1000);
+      carousel._initialized = true;
     }
 
     function prevItem() {
@@ -135,25 +183,17 @@
       background: #f8f9fa;
       overflow-x: hidden;  /* prevent horizontal scrollbar */
     }
-        .exhibition-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 100vh;
-            padding: 20px;
-            background: #f8f9fa;
-        }
 
-        .current-item {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          text-align: left;
-          padding: 0 10px;  /* horizontal padding for breathing room */
-          overflow-y: auto;
-          overflow-x: hidden;
-          max-height: calc(100vh - 4rem - 3rem);
-        }
+    .current-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      padding: 0 10px;  /* horizontal padding for breathing room */
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: calc(100vh - 4rem - 3rem);
+    }
 
     .nav-btn {
       font-size: 2.5rem;
@@ -191,33 +231,28 @@
       box-sizing: border-box;
       border-radius: 6px;  /* rounded corners */
     }
-        .item-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
 
-        .item-content img {
-            max-width: 100%;
-            max-height: 85vh;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
+    .layout-block img {
+      max-width: 100%;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
 
-        .download-link {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #d946ef;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.3s ease;
-        }
+    .layout-block .download-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #d946ef;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
 
-        .download-link:hover {
-            background: #a855f7;
-        }
+    .layout-block .download-link:hover {
+      background: #a855f7;
+    }
 
     .item-info {
       display: flex;
@@ -263,36 +298,17 @@
       opacity: 1;
     }
 
-        .item-title {
-            font-size: 2.2rem;
-            color: #4b5563;
-            margin: 0;
-            font-weight: 600;
-        }
+    .item-title {
+      font-size: 2.2rem;
+      color: #4b5563;
+      margin: 0;
+      font-weight: 600;
+    }
 
-        .item-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 20px;
-            height: 100%;
-            overflow-y: auto; /* Добавляем прокрутку */
-            padding-bottom: 150px; /* Отступ для кнопок */
-        }
-
-        .item-title {
-            font-size: 24px;
-            color: #4b5563;
-            margin: 0;
-            font-weight: 600;
-            max-width: 80%; /* Ограничиваем ширину */
-            text-align: center;
-        }
-
-        @media (max-height: 700px) {
-            .item-title {
-                font-size: 1.8rem;
-            }
+    @media (max-height: 700px) {
+      .item-title {
+        font-size: 1.8rem;
+      }
 
       .description-tooltip {
         font-size: 1rem;
@@ -308,19 +324,39 @@
     }
     .carousel .slide { flex: 0 0 100%; box-sizing: border-box; }
     .carousel .slide img { width: 100%; height: auto; display: block; }
+    .current-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .item-display {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      max-width: 100%;
+    }
+    .display-image {
+      max-width: 60%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .item-info {
+      max-width: 35%;
+      overflow-y: auto;
+    }
+    .item-title {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #4b5563;
+    }
+    .item-description {
+      font-size: 1rem;
+      color: #6b7280;
+      line-height: 1.5;
+    }
   </style>
-            .description-tooltip {
-                font-size: 1rem;
-            }
-        }
-
-        @media (orientation: landscape) and (max-width: 768px) {
-          .exhibition-container {
-            flex-direction: column;
-            overflow-y: auto;
-            height: 100vh;
-          }
-        }
-
-    </style>
 {% endblock %}
