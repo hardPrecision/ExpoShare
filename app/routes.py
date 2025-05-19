@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory, abort, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, Template, Exhibition, ExhibitionItem, Layout
@@ -380,3 +380,32 @@ def delete_exhibition(exhibition_id):
 @login_required
 def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+
+# Route to upload images pasted or dropped in the editor
+@bp.route('/editor/upload_image', methods=['POST'])
+@login_required
+def upload_image():
+    file = request.files.get('file')
+    if not file or file.filename == '':
+        return jsonify(success=False, error='No file provided'), 400
+    # Generate secure, unique filename
+    original = secure_filename(file.filename)
+    unique = secrets.token_hex(8)
+    filename = f"{unique}_{original}"
+    images_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images', current_user.uuid)
+    os.makedirs(images_dir, exist_ok=True)
+    file_path = os.path.join(images_dir, filename)
+    file.save(file_path)
+    url = url_for('main.serve_image', user_uuid=current_user.uuid, filename=filename)
+    return jsonify(success=True, url=url)
+
+
+# Route to serve uploaded images
+@bp.route('/images/<user_uuid>/<filename>')
+@login_required
+def serve_image(user_uuid, filename):
+    if user_uuid != current_user.uuid:
+        abort(403)
+    images_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images', user_uuid)
+    return send_from_directory(images_dir, filename)

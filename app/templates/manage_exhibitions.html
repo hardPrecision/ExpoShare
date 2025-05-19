@@ -266,7 +266,7 @@
 
                 <!-- QR код -->
                 <div class="qr-section flex items-center justify-center">
-                  <img src="{{ url_for('static', filename='uploads/qrcodes/' + exhibition.qr_filename) }}"
+                  <img src="{{ url_for('main.uploaded_file', filename='qrcodes/' ~ current_user.uuid ~ '/' ~ exhibition.qr_filename) }}"
                        alt="QR-код"
                        class="qr-code">
                 </div>

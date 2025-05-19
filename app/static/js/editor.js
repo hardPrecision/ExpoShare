@@ -46,22 +46,23 @@
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  function updatePreview(){
-    let raw = mdArea.value;
-    // Handle carousel shortcode: convert to HTML with slides
-    const carouselRegex = /\[carousel\]([\s\S]*?)\[\/carousel\]/g;
-    raw = raw.replace(carouselRegex, (m, inner) => {
-      // extract image markdown lines
-      const slides = inner.trim().split(/\r?\n/).map(line => {
-        const imgMatch = line.match(/!\[(.*?)\]\((.*?)\)/);
-        if (imgMatch) {
-          return `<div class="slide"><img src="${imgMatch[2]}" alt="${imgMatch[1]}" style="max-width:100%;"/></div>`;
-        }
-        return '';
-      }).join('');
-      return `<div class="carousel"><button class="prev">←</button><div class="slides">${slides}</div><button class="next">→</button></div>`;
+  function collapseImages() {
+    const imgs = Array.from(preview.querySelectorAll('img'));
+    imgs.forEach(img => {
+      if (img.closest('.carousel')) return;
+      const details = document.createElement('details');
+      details.className = 'img-collapse';
+      const summary = document.createElement('summary');
+      summary.textContent = '[Image]';
+      const imgClone = img.cloneNode(true);
+      details.appendChild(summary);
+      details.appendChild(imgClone);
+      img.replaceWith(details);
     });
-    let md = escapeHtml(raw);
+  }
+
+  function updatePreview(){
+    let md = escapeHtml(mdArea.value);
     let html = md
       .replace(/^(#{1,6})\s*(.+)$/gm, (m, hashes, title) => `<h${hashes.length}>${title}</h${hashes.length}>`)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -69,10 +70,25 @@
       .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;"/>')
       .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
       .replace(/\n/g, '<br/>');
+    // Carousel shortcode with optional delay, max_width, max_height
+    html = html.replace(/\[carousel(?:\s+delay="([\d.]+)")?(?:\s+max_width="([^"]+)")?(?:\s+max_height="([^"]+)")?\]([\s\S]*?)\[\/carousel\]/g,
+      (m, delay, maxW, maxH, inner) => {
+        const interval = parseFloat(delay) || 3;  // default 3s
+        // generate slide wrappers with optional styles
+        const slides = inner.trim().split(/<br\/?\>/)
+          .filter(s => s.trim())
+          .map(item => {
+            let style = '';
+            if (maxW) style += `max-width:${maxW};`;
+            else style += `max-width:80%;`;
+            if (maxH) style += `max-height:${maxH};`;
+            else style += `max-height:400px;`;
+            return `<div class=\"slide\" style=\"${style}\">${item}</div>`;
+          }).join('');
+        return `<div class=\"carousel\" data-delay=\"${interval}\"><div class=\"slides\">${slides}</div></div>`;
+      });
     preview.innerHTML = html;
-    // unescape details tags for spoilers
-    preview.innerHTML = preview.innerHTML.replace(/&lt;(\/?)details&gt;/g, '<$1details>').replace(/&lt;(\/?)summary&gt;/g, '<$1summary>').replace(/&lt;(div class="spoiler-content")&gt;/g,'<$1>').replace(/&lt;\/div&gt;/g,'</div>');
-    // init carousels
+    collapseImages();
     preview.querySelectorAll('.carousel').forEach(initCarousel);
     addToggleURLs();
   }
@@ -126,13 +142,15 @@
 
   // carousel behavior
   function initCarousel(carousel) {
-    if(carousel._initialized) return;
+    if (carousel._initialized) return;
     const slides = carousel.querySelector('.slides');
     const total = slides.children.length;
     let idx = 0;
-    function show(i){ slides.style.transform = `translateX(-${i*100}%)`; }
-    carousel.querySelector('.prev').onclick = ()=>{ idx = (idx-1+total)%total; show(idx); };
-    carousel.querySelector('.next').onclick = ()=>{ idx = (idx+1)%total; show(idx); };
+    function show(i) { slides.style.transform = `translateX(-${i*100}%)`; }
+    show(idx);
+    // Auto-play with delay
+    const delay = parseFloat(carousel.dataset.delay) || 3;
+    carousel._timer = setInterval(() => { idx = (idx + 1) % total; show(idx); }, delay * 1000);
     carousel._initialized = true;
   }
 
@@ -148,6 +166,73 @@
     pushHistory();
     updatePreview();
     localStorage.setItem(STORAGE_KEY, mdArea.value);
+  });
+
+  // In the markdown textarea, handle paste of images
+  mdArea.addEventListener('paste', async (e) => {
+    if (e.clipboardData) {
+      for (const item of e.clipboardData.items) {
+        if (item.type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          const form = new FormData();
+          form.append('file', blob, 'pasted_image.png');
+          try {
+            const res = await fetch('/editor/upload_image', { method: 'POST', body: form });
+            const data = await res.json();
+            const url = data.url;
+            const pos = mdArea.selectionStart;
+            const text = mdArea.value;
+            const placeholder = `![Pasted Image](${url})`;
+            mdArea.value = text.slice(0, pos) + placeholder + text.slice(pos);
+            updatePreview();
+            localStorage.setItem(STORAGE_KEY, mdArea.value);
+          } catch (err) {
+            console.error('Image paste upload failed', err);
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  // Handle dragover to style drop zone
+  mdArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    mdArea.classList.add('dragover');
+  });
+  mdArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    mdArea.classList.remove('dragover');
+  });
+  // Handle drop of images
+  mdArea.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    mdArea.classList.remove('dragover');
+    if (e.dataTransfer && e.dataTransfer.files.length) {
+      for (const file of e.dataTransfer.files) {
+        if (file.type.startsWith('image/')) {
+          const form = new FormData();
+          form.append('file', file);
+          try {
+            const res = await fetch('/editor/upload_image', { method: 'POST', body: form });
+            const data = await res.json();
+            if (data.success) {
+              const url = data.url;
+              const pos = mdArea.selectionStart;
+              const text = mdArea.value;
+              const placeholder = `![Dropped Image](${url})`;
+              mdArea.value = text.slice(0, pos) + placeholder + text.slice(pos);
+              updatePreview();
+              localStorage.setItem(STORAGE_KEY, mdArea.value);
+            }
+          } catch (err) {
+            console.error('Image drop upload failed', err);
+          }
+          break;
+        }
+      }
+    }
   });
 
   toolbar.addEventListener('click', e => {
@@ -187,24 +272,33 @@
       }
       if(act==='image'){
         const input = document.createElement('input');
-        input.type='file'; input.accept='image/*';
-        input.onchange = ()=>{
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async () => {
           const file = input.files[0];
-          const reader = new FileReader();
-          reader.onload = ()=>{
-            const data = reader.result;
-            insertAround(`![${file.name}](${data}` , `)`);
-          };
-          reader.readAsDataURL(file);
+          const form = new FormData();
+          form.append('file', file);
+          try {
+            const res = await fetch('/editor/upload_image', { method: 'POST', body: form });
+            const data = await res.json();
+            const url = data.url;
+            insertAround(`![${file.name}](${url})`, '');
+          } catch (err) {
+            console.error('Image upload failed', err);
+          }
         };
         input.click();
+        return;
       }
       if(act==='carousel'){
-        // Insert carousel shortcode around selection or placeholder
+        // Prompt user for slide delay in seconds
+        let delay = prompt('Задержка между слайдами (в секундах):', '3');
+        if (delay === null) return;
+        delay = parseFloat(delay) || 3;
         const start = mdArea.selectionStart;
         const end = mdArea.selectionEnd;
         const sel = mdArea.value.slice(start, end) || '![alt](url)';
-        const carouselBlock = `[carousel]\n${sel}\n[/carousel]\n`;
+        const carouselBlock = `[carousel delay="${delay}"]\n${sel}\n[/carousel]\n`;
         mdArea.value = mdArea.value.slice(0, start) + carouselBlock + mdArea.value.slice(end);
         updatePreview();
         localStorage.setItem(STORAGE_KEY, mdArea.value);
