@@ -114,6 +114,10 @@
         .template-info h3 {
             font-size: 1.125rem;
             margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
         }
 
         .template-info p {
@@ -298,6 +302,26 @@
         {% endfor %}
         {% endif %}
     </div>
+
+    {% if layouts %}
+    <h2 class="text-xl font-bold mt-8 mb-4 text-center">Мои Layouts</h2>
+    <div class="grid-container">
+        {% for layout in layouts %}
+        <div class="template-card">
+            <div class="template-info">
+                <h3>{{ layout.name }}</h3>
+                <small>Сохранено: {{ layout.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+            </div>
+            <div class="actions">
+                <a href="{{ url_for('main.view_layout', layout_id=layout.id) }}"
+                   class="action-btn btn-primary">
+                    Просмотр
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 </body>
 </html>

@@ -1,44 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="exhibition-container">
+  <div class="exhibition-header">
+    <h1 class="exhibition-title">{{ exhibition.name }}</h1>
+    <div id="page-indicator" class="page-indicator">1/{{ items|length }}</div>
+  </div>
+  <div class="exhibition-container">
         <button onclick="prevItem()" class="nav-btn">←</button>
         <div class="current-item" id="current-item"></div>
         <button onclick="nextItem()" class="nav-btn">→</button>
     </div>
 
-    <script>
-        let currentItemIndex = 0;
-        const items = {{ items|tojson }};
-        const exhibitionId = {{ exhibition.id }};
+  <script>
+    const userUuid = '{{ user_uuid }}';
+    let currentItemIndex = 0;
+    const items = {{ items|tojson }};
+    const exhibitionId = {{ exhibition.id }};
+    const slideCache = {};
 
-        function updateCurrentItem() {
-            const currentItem = items[currentItemIndex];
+    function updateCurrentItem() {
+      const currentItem = items[currentItemIndex];
+      const ext = currentItem.filename ? currentItem.filename.split('.').pop().toLowerCase() : '';
 
-            // Используем name из данных или имя файла
-            const title = currentItem.name ||
-                (currentItem.filename ?
+      // Используем name из данных или имя файла
+      const title = currentItem.name ||
+                   (currentItem.filename ?
                     currentItem.filename.split('.')[0].replace(/_/g, ' ') :
                     'Без названия');
 
-            // Пытаемся найти описание в разных полях
-            const description = currentItem.description ||
-                currentItem.desc ||
-                currentItem.text ||
-                currentItem.annotation ||
-                'Описание отсутствует';
+      // Пытаемся найти описание в разных полях
+      const description = currentItem.description ||
+                         currentItem.desc ||
+                         currentItem.text ||
+                         currentItem.annotation ||
+                         'Описание отсутствует';
 
-            const container = document.getElementById('current-item');
-            container.innerHTML = `
-        <div class="item-content">
-          ${isImage(currentItem.filename) ?
-                `<img src="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}"
-                 style="max-width: 100%; max-height: 80vh;">` :
-                `<a href="/static/uploads/exhibitions/${exhibitionId}/${currentItem.filename}" class="download-link">
-              Скачать файл (${currentItem.filename})
-            </a>`
-            }
-
-          <div class="item-info">
+      const container = document.getElementById('current-item');
+      let contentHtml = '';
+      if (ext === 'md' || ext === 'html') {
+        // layout: render inline
+        contentHtml = `<div id="layout-render" class="item-content"><div class="spinner"></div></div>`;
+      } else if (isImage(currentItem.filename)) {
+        contentHtml = `<img src="/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}"
+                             style="max-width: 100%; max-height: 80vh;">`;
+      } else {
+        contentHtml = `<a href="/uploads/exhibitions/${userUuid}/${exhibitionId}/${currentItem.filename}" class="download-link">
+                            Скачать файл (${currentItem.filename})
+                        </a>`;
+      }
+      container.innerHTML = `
+        <div class="item-content layout-block">
+          ${contentHtml}
+        </div>
+        <div class="item-info">
             <h2 class="item-title">${title}</h2>
 
             <!-- Значок информации -->
@@ -49,36 +62,79 @@
           </div>
         </div>
       `;
-        }
+    }
 
-        function prevItem() {
-            currentItemIndex = Math.max(0, currentItemIndex - 1);
-            updateCurrentItem();
-        }
+    function prevItem() {
+      currentItemIndex = Math.max(0, currentItemIndex - 1);
+      updateCurrentItem();
+    }
 
-        function nextItem() {
-            currentItemIndex = Math.min(items.length - 1, currentItemIndex + 1);
-            updateCurrentItem();
-        }
+    function nextItem() {
+      currentItemIndex = Math.min(items.length - 1, currentItemIndex + 1);
+      updateCurrentItem();
+    }
 
-        function isImage(filename) {
-            if (!filename) return false;
-            const ext = filename.split('.').pop().toLowerCase();
-            return ['png', 'jpg', 'jpeg'].includes(ext);
-        }
+    function isImage(filename) {
+      if (!filename) return false;
+      const ext = filename.split('.').pop().toLowerCase();
+      return ['png', 'jpg', 'jpeg'].includes(ext);
+    }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateCurrentItem();
-        });
-    </script>
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCurrentItem();
+    });
 
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-        }
+    document.addEventListener('keydown', e => {
+      if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (e.code === 'Space' || e.code === 'ArrowRight') {
+        e.preventDefault(); nextItem();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault(); prevItem();
+      }
+    });
+  </script>
 
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .exhibition-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .exhibition-title {
+      margin: 0;
+      font-size: 1.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .page-indicator {
+      font-size: 1rem;
+      color: #6b7280;
+    }
+
+    .exhibition-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: calc(100vh - 4rem - 3rem);
+      padding: 0 20px 20px;
+      background: #f8f9fa;
+      overflow-x: hidden;  /* prevent horizontal scrollbar */
+    }
         .exhibition-container {
             display: flex;
             align-items: center;
@@ -89,29 +145,52 @@
         }
 
         .current-item {
-            flex: 1;
-            text-align: center;
-            padding: 20px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          text-align: left;
+          padding: 0 10px;  /* horizontal padding for breathing room */
+          overflow-y: auto;
+          overflow-x: hidden;
+          max-height: calc(100vh - 4rem - 3rem);
         }
 
-        .nav-btn {
-            font-size: 2.5rem;
-            padding: 15px 25px;
-            margin: 0 10px;
-            background-color: #EF4444; /* Цвет ExpoShare (фиолетовый) */
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
+    .nav-btn {
+      font-size: 2.5rem;
+      padding: 15px 25px;
+      margin: 0 10px;
+      background-color: #EF4444; /* Цвет ExpoShare (фиолетовый) */
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
 
-        .nav-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
+    .nav-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
 
+    .item-content {
+      flex: 1;
+      text-align: left;
+      padding: 0;
+      margin: 0;
+      /* full width within parent, margins handled by container */
+    }
+
+    .layout-block {
+      background: white;
+      margin: 10px 0;  /* vertical spacing only to avoid horizontal overflow */
+      padding: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+      border-radius: 6px;  /* rounded corners */
+    }
         .item-content {
             display: flex;
             flex-direction: column;
@@ -140,49 +219,49 @@
             background: #a855f7;
         }
 
-        .item-info {
-            display: flex;
-            align-items: center;
-            margin-top: 15px;
-        }
+    .item-info {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+    }
 
-        .description-tooltip {
-            position: relative;
-            cursor: help;
-            font-size: 1.2rem;
-            color: #6b7280;
-            transition: color 0.3s ease;
-        }
+    .description-tooltip {
+      position: relative;
+      cursor: help;
+      font-size: 1.2rem;
+      color: #6b7280;
+      transition: color 0.3s ease;
+    }
 
-        .description-tooltip:hover {
-            color: #d946ef;
-        }
+    .description-tooltip:hover {
+      color: #d946ef;
+    }
 
-        .tooltip-text {
-            visibility: hidden;
-            width: 300px;
-            background: #374151;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 1000;
-            bottom: 125%; /* Показываем над значком */
-            left: 50%;
-            margin-left: -150px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+    .tooltip-text {
+      visibility: hidden;
+      width: 300px;
+      background: #374151;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1000;
+      bottom: 125%; /* Показываем над значком */
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
 
-        .description-tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
+    .description-tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
 
         .item-title {
             font-size: 2.2rem;
@@ -215,6 +294,21 @@
                 font-size: 1.8rem;
             }
 
+      .description-tooltip {
+        font-size: 1rem;
+      }
+    }
+
+    /* Carousel styles */
+    .carousel { position: relative; overflow: hidden; width: 100%; }
+    .carousel .slides {
+      display: flex;
+      flex-wrap: nowrap;
+      transition: transform 0.3s ease-in-out; /* animate transforms */
+    }
+    .carousel .slide { flex: 0 0 100%; box-sizing: border-box; }
+    .carousel .slide img { width: 100%; height: auto; display: block; }
+  </style>
             .description-tooltip {
                 font-size: 1rem;
             }

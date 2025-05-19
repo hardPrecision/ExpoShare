@@ -33,6 +33,26 @@
             </div>
 
             <div>
+                <label class="block text-sm font-medium text-gray-700 mt-4">Выберите сохранённые Layouts</label>
+                <div class="mt-1 space-y-2">
+                    {% for layout_id, name in form.layouts.choices %}
+                    <div class="flex items-center">
+                        <input type="checkbox"
+                               id="layout_{{ layout_id }}"
+                               name="layouts"
+                               value="{{ layout_id }}"
+                               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                               {% if layout_id in (form.layouts.data or []) %}checked{% endif %}>
+                        <label for="layout_{{ layout_id }}" class="ml-2 block text-sm text-gray-900">{{ name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% for error in form.layouts.errors %}
+                <div class="text-red-500 text-xs mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div>
                 {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary", value="Создать выставку") }}
             </div>
         </form>
