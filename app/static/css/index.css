@@ -1,0 +1,81 @@
+.homepage-wrapper {
+    min-height: 90vh;
+}
+
+.homepage-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 5rem 1rem 4rem;
+}
+
+.homepage-header {
+    text-align: center;
+}
+
+.homepage-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 2rem;
+}
+
+.homepage-subtitle {
+    font-size: 1.25rem;
+    color: #666;
+    margin-bottom: 3rem;
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.homepage-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.btn-primary {
+    padding: 0.75rem 2rem;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    padding: 0.75rem 2rem;
+    background-color: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 0.5rem;
+    text-decoration: none;
+}
+
+.homepage-features {
+    margin-top: 6rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+}
+
+.feature {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.feature-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.feature-description {
+    color: #4b5563;
+}

@@ -1,59 +1,63 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/create_exhibition.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-        <h1 class="text-2xl font-bold text-center">Создание выставки</h1>
-        <form class="mt-8 space-y-6" method="POST">
+<div class="page-wrapper">
+    <div class="form-container">
+        <h1>Создание выставки</h1>
+        <form method="POST">
             {{ form.hidden_tag() }}
 
-            <div>
-                <label for="exhibition_name" class="block text-sm font-medium text-gray-700">Название выставки</label>
-                {{ form.name(class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary", id="exhibition_name", style="width: 100%; box-sizing: border-box;") }}
+            <div class="form-group">
+                <label for="exhibition_name">Название выставки</label>
+                {{ form.name(class="input-text", id="exhibition_name") }}
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Выберите макеты</label>
-                <div class="mt-1 space-y-2">
+            <div class="form-group">
+                <label>Выберите макеты</label>
+                <div class="checkbox-group">
                     {% for template_id, name in form.templates.choices %}
-                    <div class="flex items-center">
+                    <div class="checkbox-item">
                         <input type="checkbox"
                                id="template_{{ template_id }}"
                                name="templates"
                                value="{{ template_id }}"
-                               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                               class="checkbox-input"
                                {% if template_id in (form.templates.data or []) %}checked{% endif %}>
-                        <label for="template_{{ template_id }}" class="ml-2 block text-sm text-gray-900">{{ name }}</label>
+                        <label for="template_{{ template_id }}">{{ name }}</label>
                     </div>
                     {% endfor %}
                 </div>
                 {% for error in form.templates.errors %}
-                <div class="text-red-500 text-xs mt-1">{{ error }}</div>
+                <div class="error-message">{{ error }}</div>
                 {% endfor %}
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mt-4">Выберите сохранённые Layouts</label>
-                <div class="mt-1 space-y-2">
+            <div class="form-group">
+                <label>Выберите сохранённые Layouts</label>
+                <div class="checkbox-group">
                     {% for layout_id, name in form.layouts.choices %}
-                    <div class="flex items-center">
+                    <div class="checkbox-item">
                         <input type="checkbox"
                                id="layout_{{ layout_id }}"
                                name="layouts"
                                value="{{ layout_id }}"
-                               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                               class="checkbox-input"
                                {% if layout_id in (form.layouts.data or []) %}checked{% endif %}>
-                        <label for="layout_{{ layout_id }}" class="ml-2 block text-sm text-gray-900">{{ name }}</label>
+                        <label for="layout_{{ layout_id }}">{{ name }}</label>
                     </div>
                     {% endfor %}
                 </div>
                 {% for error in form.layouts.errors %}
-                <div class="text-red-500 text-xs mt-1">{{ error }}</div>
+                <div class="error-message">{{ error }}</div>
                 {% endfor %}
             </div>
 
-            <div>
-                {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary", value="Создать выставку") }}
+            <div class="form-group">
+                {{ form.submit(class="submit-btn", value="Создать выставку") }}
             </div>
         </form>
     </div>
