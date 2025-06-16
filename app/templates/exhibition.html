@@ -72,8 +72,6 @@
       }
     }
 
-    // Very basic markdown to HTML
-    // Extend simpleMarkdown to handle carousel shortcode
     function simpleMarkdown(md) {
       let html = md
         .replace(/^(#{1,6})\s*(.+)$/gm, (m, hashes, title) => `<h${hashes.length}>${title}</h${hashes.length}>`)
@@ -82,7 +80,6 @@
         .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;"/>')
         .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
         .replace(/\n/g, '<br/>');
-      // Post-process carousel shortcode with optional size attributes
       html = html.replace(/\[carousel(?:\s+delay="([\d.]+)")?(?:\s+max_width="([^"]+)")?(?:\s+max_height="([^"]+)")?\]([\s\S]*?)\[\/carousel\]/g,
         (m, delay, maxW, maxH, inner) => {
           const interval = parseFloat(delay) || 3;
@@ -99,7 +96,6 @@
       return html;
     }
 
-    // Add initCarousel for exhibition view
     function initCarousel(carousel) {
       if (carousel._initialized) return;
       const slides = carousel.querySelector('.slides');
@@ -181,7 +177,7 @@
       height: calc(100vh - 4rem - 3rem);
       padding: 0 20px 20px;
       background: #f8f9fa;
-      overflow-x: hidden;  /* prevent horizontal scrollbar */
+      overflow-x: hidden;
     }
 
     .current-item {
@@ -189,7 +185,7 @@
       display: flex;
       flex-direction: column;
       text-align: left;
-      padding: 0 10px;  /* horizontal padding for breathing room */
+      padding: 0 10px;
       overflow-y: auto;
       overflow-x: hidden;
       max-height: calc(100vh - 4rem - 3rem);
@@ -199,7 +195,7 @@
       font-size: 2.5rem;
       padding: 15px 25px;
       margin: 0 10px;
-      background-color: #EF4444; /* Цвет ExpoShare (фиолетовый) */
+      background-color: #EF4444;
       color: white;
       border: none;
       border-radius: 12px;
@@ -218,18 +214,17 @@
       text-align: left;
       padding: 0;
       margin: 0;
-      /* full width within parent, margins handled by container */
     }
 
     .layout-block {
       background: white;
-      margin: 10px 0;  /* vertical spacing only to avoid horizontal overflow */
+      margin: 10px 0;
       padding: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       overflow-y: auto;
       overflow-x: hidden;
       box-sizing: border-box;
-      border-radius: 6px;  /* rounded corners */
+      border-radius: 6px;
     }
 
     .layout-block img {
@@ -282,7 +277,7 @@
       padding: 10px;
       position: absolute;
       z-index: 1000;
-      bottom: 125%; /* Показываем над значком */
+      bottom: 125%;
       left: 50%;
       margin-left: -150px;
       opacity: 0;
@@ -315,7 +310,6 @@
       }
     }
 
-    /* Carousel styles */
     .carousel { position: relative; overflow: hidden; width: 100%; }
     .carousel .slides {
       display: flex;

@@ -2,21 +2,18 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <!-- Подключение шрифтов и иконок -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>ExpoShare</title>
     <style>
-        /* Глобальные переменные */
         :root {
             --primary-color: #ef4444;
             --gray-bg: #f9fafb;
             --border-color: #e5e7eb;
         }
 
-        /* Базовые стили */
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--gray-bg);
@@ -30,7 +27,6 @@
         .rounded-lg { border-radius: 0.5rem; }
         .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Приветственный блок */
         .welcome-block {
             min-height: 20vh;
             display: flex;
@@ -57,7 +53,6 @@
             margin-bottom: 0;
         }
 
-        /* Кнопки действий */
         .action-btn {
             background-color: var(--primary-color);
             color: white;
@@ -70,13 +65,13 @@
             align-items: center;
             justify-content: center;
             margin-left: 1rem;
-            border: none; /* Убираем границы */
+            border: none;
         }
         .action-btn.small {
-            padding: 0.5rem 1rem; /* Уменьшено на ~30% */
-            font-size: 0.875rem; /* Меньший размер текста */
-            margin: 0; /* Убираем отступы */
-            flex: 1; /* Равномерное распределение ширины */
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            margin: 0;
+            flex: 1;
         }
         .action-btn:hover {
             background-color: #ef4444;
@@ -84,13 +79,12 @@
         }
         .action-btn:focus {
             outline: none;
-            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5); /* Добавляем фокус */
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5);
         }
         .action-btn i {
             margin-right: 0.5rem;
         }
 
-        /* Карточки выставок */
         .exhibition-card {
             width: 300px;
             height: 600px;
@@ -109,11 +103,10 @@
         .exhibition-card .qr-section { height: 60%; }
         .exhibition-card .actions-section { 
             height: 10%; 
-            border-top: 1px solid var(--border-color); /* Разделитель */
-            padding-top: 0.5rem; /* Отступ сверху */
+            border-top: 1px solid var(--border-color);
+            padding-top: 0.5rem;
         }
 
-        /* Внутренние элементы */
         .qr-code {
             max-width: 100%;
             max-height: 100%;
@@ -133,7 +126,6 @@
             outline: none;
         }
 
-        /* Сетка карточек */
         .exhibition-grid {
             display: grid;
             gap: 1.5rem;
@@ -146,7 +138,6 @@
             }
         }
 
-        /* Навигация */
         nav {
             display: flex;
             justify-content: space-between;
@@ -203,7 +194,6 @@
     </style>
 </head>
 <body>
-    <!-- Шапка -->
     <nav>
         <div class="nav-left">
             <a href="/" style="text-decoration: none; font-size: 1.5em; font-weight: bold; color: var(--primary-color);">ExpoShare</a>
@@ -225,18 +215,14 @@
         </div>
     </nav>
 
-    <!-- Основной контент -->
     <div class="container" style="padding: 2rem;">
         {% block content %}
-          <!-- Приветственный блок -->
           <div class="welcome-block">
             <div class="welcome-card">
                 <h1>Это ваша личная полка с выставками</h1>
                 <p>Делитесь своими выставками</p>
             </div>
           </div>
-
-          <!-- Кнопки действий -->
           <div class="flex justify-center gap-4 mb-10">
             <a href="{{ url_for('main.create_exhibition') }}" class="action-btn">
               Создать выставку
@@ -246,16 +232,13 @@
             </a>
           </div>
 
-          <!-- Список выставок -->
           <div class="exhibition-grid">
             {% for exhibition in exhibitions %}
               <div class="exhibition-card">
-                <!-- Название -->
                 <div class="title-section">
                   <h3 class="text-lg font-semibold truncate">{{ exhibition.name }}</h3>
                 </div>
 
-                <!-- Ссылка -->
                 <div class="link-section">
                   <input type="text"
                          value="{{ exhibition.public_url }}"
@@ -264,14 +247,12 @@
                          onclick="this.select()">
                 </div>
 
-                <!-- QR код -->
                 <div class="qr-section flex items-center justify-center">
                   <img src="{{ url_for('main.uploaded_file', filename='qrcodes/' ~ current_user.uuid ~ '/' ~ exhibition.qr_filename) }}"
                        alt="QR-код"
                        class="qr-code">
                 </div>
 
-                <!-- Действия -->
                 <div class="actions-section flex gap-3">
                   <a href="{{ url_for('main.view_exhibition', url_key=exhibition.url_key) }}" 
                      class="action-btn small">
