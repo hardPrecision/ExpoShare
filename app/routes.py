@@ -171,7 +171,6 @@ def view_layout(layout_id):
     layout = Layout.query.get_or_404(layout_id)
     if layout.user_id != current_user.id:
         return redirect(url_for('main.dashboard'))
-    # Render editor template in preview-only mode
     return render_template('editor.html', layout=layout, view_mode=True)
 
 
@@ -179,12 +178,10 @@ def view_layout(layout_id):
 @login_required
 def save_layout():
     data = request.get_json() or {}
-    # Determine layout name, content, and file extension
     name = data.get('name', f'Layout {datetime.utcnow().strftime("%Y%m%d%H%M%S")}')
     content = data.get('content', '')
     ext = 'html' if data.get('mode') == 'html' else 'md'
     layout_id = data.get('id')
-    # Prevent duplicate names
     conflict = Layout.query.filter_by(user_id=current_user.id, name=name)
     if layout_id:
         layout = Layout.query.get_or_404(layout_id)
@@ -192,7 +189,6 @@ def save_layout():
             return {'success': False, 'error': 'Forbidden'}, 403
         if conflict.first() and conflict.first().id != layout.id:
             return {'success': False, 'error': 'Duplicate name'}
-        # Update record and overwrite file
         layout.name = name
         layout.content = content
         safe = secure_filename(name)
@@ -204,7 +200,6 @@ def save_layout():
         layout.filename = filename
         db.session.commit()
         return {'success': True, 'id': layout.id, 'name': layout.name}
-    # New layout creation
     if conflict.first():
         return {'success': False, 'error': 'Duplicate name'}
     layout = Layout(name=name, filename='', content=content, user_id=current_user.id)
@@ -229,7 +224,7 @@ def generate_qr(exhibition):
         box_size=10,
         border=4,
     )
-    qr.add_data(exhibition.public_url)  # Используем внешний URL
+    qr.add_data(exhibition.public_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
 
@@ -289,9 +284,7 @@ def create_exhibition():
             )
             db.session.add(item)
 
-        # add layout items
         for layout in selected_layouts:
-            # copy layout file into exhibition folder
             src = os.path.join(current_app.config['UPLOAD_FOLDER'], 'layouts', current_user.uuid, layout.filename)
             dst = os.path.join(exhibition_dir, layout.filename)
             shutil.copy2(src, dst)
@@ -300,7 +293,7 @@ def create_exhibition():
                 original_template_id=None,
                 name=layout.name,
                 filename=layout.filename,
-                description=''  # or layout.content preview
+                description=''
             )
             db.session.add(item)
 
@@ -334,7 +327,6 @@ def view_exhibition(url_key):
     items = []
     for item in exhibition.items:
         item_data = {'id': item.id, 'name': item.name, 'description': item.description, 'filename': item.filename}
-        # add animation settings for layout items
         anim_type = anim_timing = anim_duration = ''
         if item.original_template_id is None:
             layout = Layout.query.filter_by(filename=item.filename, user_id=exhibition.user_id).first()
@@ -392,14 +384,12 @@ def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
 
-# Route to upload images pasted or dropped in the editor
 @bp.route('/editor/upload_image', methods=['POST'])
 @login_required
 def upload_image():
     file = request.files.get('file')
     if not file or file.filename == '':
         return jsonify(success=False, error='No file provided'), 400
-    # Generate secure, unique filename
     original = secure_filename(file.filename)
     unique = secrets.token_hex(8)
     filename = f"{unique}_{original}"
@@ -411,7 +401,6 @@ def upload_image():
     return jsonify(success=True, url=url)
 
 
-# Route to serve uploaded images
 @bp.route('/images/<user_uuid>/<filename>')
 @login_required
 def serve_image(user_uuid, filename):

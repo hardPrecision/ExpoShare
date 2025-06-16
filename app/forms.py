@@ -48,11 +48,9 @@ class CreateExhibitionForm(FlaskForm):
     submit = SubmitField('Создать выставку')
 
     def validate(self, extra_validators=None):
-        # Forward WTForms extra_validators
         rv = super(CreateExhibitionForm, self).validate(extra_validators=extra_validators)
         if not rv:
             return False
-        # Require at least one template or layout
         if not (self.templates.data or self.layouts.data):
             msg = 'Выберите хотя бы один макет или Layout'
             self.templates.errors.append(msg)

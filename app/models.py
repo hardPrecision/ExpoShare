@@ -72,15 +72,9 @@ class Layout(db.Model):
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    anim_type = db.Column(db.String(32), nullable=True)      # animation type (fade-in, slide-in, etc.)
-    anim_timing = db.Column(db.String(32), nullable=True)    # CSS animation timing function
-    anim_duration = db.Column(db.String(16), nullable=True)  # duration in seconds (e.g., '1s')
+    anim_type = db.Column(db.String(32), nullable=True)
+    anim_timing = db.Column(db.String(32), nullable=True)
+    anim_duration = db.Column(db.String(16), nullable=True)
 
     def __repr__(self):
         return f'<Layout {self.name}>'
-
-
-# flask db init
-# flask db migrate -m "Local migration"
-# flask db upgrade
-# В терминал для создания локальной бдшки
