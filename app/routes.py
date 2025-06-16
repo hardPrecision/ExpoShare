@@ -50,7 +50,8 @@ def register():
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
-            return redirect(url_for('main.login'))
+            login_user(user)
+            return redirect(url_for('main.dashboard'))
         except IntegrityError:
             db.session.rollback()
             flash('Имя пользователя уже занято', 'error')

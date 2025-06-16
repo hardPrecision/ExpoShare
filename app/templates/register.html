@@ -1,69 +1,56 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-        <div class="text-center">
-        </div>
-        <form class="mt-8 space-y-6" method="POST">
-            {{ form.hidden_tag() }}
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                        <span class="block sm:inline">{{ message }}</span>
-                    </div>
-                {% endfor %}
-            {% endwith %}
-
-            <div class="space-y-4">
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Название организации</label>
-                    {{ form.username(
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary",
-                        id="username",
-                        style="width: 100%; box-sizing: border-box;"
-                    ) }}
-                    {% if form.username.errors %}
-                        {% for error in form.username.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Пароль</label>
-                    {{ form.password(
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary",
-                        id="password",
-                        style="width: 100%; box-sizing: border-box;"
-                    ) }}
-                    {% if form.password.errors %}
-                        {% for error in form.password.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div>
-                    <label for="confirm" class="block text-sm font-medium text-gray-700">Подтверждение пароля</label>
-                    {{ form.confirm(
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary",
-                        id="confirm",
-                        style="width: 100%; box-sizing: border-box;"
-                    ) }}
-                    {% if form.confirm.errors %}
-                        {% for error in form.confirm.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-
-            {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary", style="background-color: var(--primary-color)", value="Зарегистрироваться") }}
-        </form>
-    </div>
-</div>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/registration.css') }}">
 {% endblock %}
 
+{% block content %}
+<div class="login-wrapper">
+  <div class="login-box registration-box">
+    <div class="login-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon-login" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="8.5" cy="7" r="4"></circle>
+        <line x1="20" y1="8" x2="20" y2="14"></line>
+        <line x1="17" y1="11" x2="23" y2="11"></line>
+      </svg>
+    </div>
+    <h2 class="login-title">Регистрация</h2>
+    <form method="POST" class="login-form">
+      {{ form.hidden_tag() }}
 
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-error" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <div class="form-group">
+        <label for="username">Название организации</label>
+        {{ form.username(id="username", class="form-input") }}
+        {% for error in form.username.errors %}
+          <p class="form-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        {{ form.password(id="password", class="form-input") }}
+        {% for error in form.password.errors %}
+          <p class="form-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label for="confirm">Подтверждение пароля</label>
+        {{ form.confirm(id="confirm", class="form-input") }}
+        {% for error in form.confirm.errors %}
+          <p class="form-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      {{ form.submit(class="form-submit", value="Зарегистрироваться") }}
+    </form>
+  </div>
+</div>
+{% endblock %}
