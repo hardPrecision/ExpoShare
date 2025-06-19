@@ -9,7 +9,7 @@ function showToast(message, type = 'default') {
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const flashMessages = JSON.parse('{{ get_flashed_messages() | tojson | safe }}');
     if (flashMessages?.length) {
         flashMessages.forEach(message => showToast(message, "success"));

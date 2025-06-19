@@ -15,7 +15,7 @@ html, body {
 
 .editor-card {
     width: 100%;
-    max-width: 28rem; /* 448px */
+    max-width: 28rem;
     padding: 2rem;
     background: white;
     border-radius: 0.75rem;
