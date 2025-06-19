@@ -70,15 +70,14 @@
                 </div>
 
                 <div class="actions-section flex gap-3">
-                  <a href="{{ url_for('main.view_exhibition', url_key=exhibition.url_key) }}"
-                     class="action-btn small">
-                    Посмотреть
-                  </a>
-                  <form action="{{ url_for('main.delete_exhibition', exhibition_id=exhibition.id) }}"
-                        method="POST"
-                        class="flex-1">
-                    <button type="submit"
-                            class="action-btn small full-width">
+                  <form action="{{ url_for('main.view_exhibition', url_key=exhibition.url_key) }}" method="GET" class="full-width">
+                    <button type="submit" class="action-btn small full-width text-center full-height">
+                      Посмотреть
+                    </button>
+                  </form>
+
+                  <form action="{{ url_for('main.delete_exhibition', exhibition_id=exhibition.id) }}" method="POST" class="full-width">
+                    <button type="submit" class="action-btn small full-width text-center full-height">
                       Удалить
                     </button>
                   </form>
