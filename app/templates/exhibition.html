@@ -4,6 +4,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/exhibition.css') }}">
 {% endblock %}
 
+{% block extra_head %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% endblock %}
+
 {% block content %}
   <div class="exhibition-header">
     <h1 class="exhibition-title">{{ exhibition.name }}</h1>

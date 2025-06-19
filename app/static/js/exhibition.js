@@ -97,24 +97,32 @@
     }
 
     pageIndicator.textContent = `${currentItemIndex + 1}/${items.length}`;
+  }
 
-    const block = currentItemContainer.querySelector('.layout-block');
-    if (block) {
-      block.classList.remove('fade-in', 'slide-in');
-      block.classList.add('fade-in');
-      block.style.setProperty('--anim-duration', '1s');
-      block.style.animationTimingFunction = 'ease';
-    }
+  function animateTransition(direction) {
+    const content = currentItemContainer.querySelector('.item-content');
+    if (!content) return;
+    const className = direction === 'left' ? 'swipe-left' : 'swipe-right';
+    content.classList.add(className);
+    setTimeout(() => {
+      content.classList.remove('swipe-left', 'swipe-right');
+    }, 300);
   }
 
   function prevItem() {
-    currentItemIndex = Math.max(0, currentItemIndex - 1);
-    updateCurrentItem();
+    if (currentItemIndex > 0) {
+      currentItemIndex--;
+      updateCurrentItem();
+      animateTransition('right');
+    }
   }
 
   function nextItem() {
-    currentItemIndex = Math.min(items.length - 1, currentItemIndex + 1);
-    updateCurrentItem();
+    if (currentItemIndex < items.length - 1) {
+      currentItemIndex++;
+      updateCurrentItem();
+      animateTransition('left');
+    }
   }
 
   prevBtn.addEventListener('click', prevItem);
@@ -126,6 +134,20 @@
       e.preventDefault(); nextItem();
     } else if (e.code === 'ArrowLeft') {
       e.preventDefault(); prevItem();
+    }
+  });
+
+  let startX = 0;
+  currentItemContainer.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+  });
+
+  currentItemContainer.addEventListener('touchend', e => {
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - startX;
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX < 0) nextItem();
+      else prevItem();
     }
   });
 
