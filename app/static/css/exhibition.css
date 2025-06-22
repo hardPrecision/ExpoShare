@@ -263,6 +263,8 @@ body {
     overflow: hidden;
     font-size: 0.9rem;
     flex-direction: column;
+    max-width: 250px;
+    max-height: 80vh;
   }
 
   .item-title,
@@ -273,6 +275,7 @@ body {
     text-overflow: unset;
     font-size: 1rem;
     max-width: 100%;
+    max-height: 80%;
   }
 
   .item-display {
